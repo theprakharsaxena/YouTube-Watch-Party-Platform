@@ -4,6 +4,8 @@ import { AppError, ErrorCodes, toClientError } from '../utils/errors.js';
 import { registerRoomHandlers } from './handlers/roomHandlers.js';
 import { registerPlaybackHandlers } from './handlers/playbackHandlers.js';
 import { registerRoleHandlers } from './handlers/roleHandlers.js';
+import { registerChatHandlers } from './handlers/ChatMessageHandler.js';
+import { setupRedisAdapter } from './redisAdapter.js';
 
 export const roomChannel = (roomId) => `room:${roomId}`;
 
@@ -22,6 +24,9 @@ export function createSocketServer(httpServer, { roomService, config }) {
   const sessions = new Map();
 
   const context = { io, roomService, sessions, config };
+
+  // Attach Redis adapter if REDIS_URL is configured for multi-server cluster
+  setupRedisAdapter(io, { redisUrl: config.redisUrl || process.env.REDIS_URL });
 
   io.on('connection', (socket) => {
     const allow = createRateLimiter(config.rateLimit);
@@ -45,6 +50,7 @@ export function createSocketServer(httpServer, { roomService, config }) {
     registerRoomHandlers(context, socket, on);
     registerPlaybackHandlers(context, socket, on);
     registerRoleHandlers(context, socket, on);
+    registerChatHandlers(context, socket, on);
   });
 
   // Timer-driven changes originate in the service rather than a socket event.

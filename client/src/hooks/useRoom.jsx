@@ -13,6 +13,8 @@ export function RoomProvider({ children }) {
   const toast = useToast();
   const { socket, status, ensureConnected } = useSocket();
   const [room, setRoom] = useState(EMPTY);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [reactions, setReactions] = useState([]);
   const roomRef = useRef(room); // always-fresh mirror for socket callbacks (avoids stale closures)
   const waiters = useRef(new Set());
 
@@ -68,7 +70,12 @@ export function RoomProvider({ children }) {
       return handled;
     };
 
-    const applyState = (state) => update({ state, receivedAt: Date.now() });
+    const applyState = (state) => {
+      if (state.chat && Array.isArray(state.chat)) {
+        setChatMessages(state.chat);
+      }
+      update({ state, receivedAt: Date.now() });
+    };
     const myId = () => roomRef.current.me?.participantId;
     const nameOf = (state, id) => state.participants.find((p) => p.id === id)?.name ?? 'Someone';
 
@@ -76,6 +83,9 @@ export function RoomProvider({ children }) {
       const previous = loadSession(data.roomId);
       const name = data.state.participants.find((p) => p.id === data.participantId)?.name ?? previous?.name;
       saveSession(data.roomId, { participantId: data.participantId, token: data.token, name });
+      if (data.state.chat && Array.isArray(data.state.chat)) {
+        setChatMessages(data.state.chat);
+      }
       update({
         phase: 'joined',
         roomId: data.roomId,
@@ -91,6 +101,20 @@ export function RoomProvider({ children }) {
       room_created: onEntered('room_created'),
       room_joined: onEntered('room_joined'),
       room_state: ({ state }) => applyState(state),
+      chat_message: ({ message }) => {
+        setChatMessages((prev) => [...prev, message]);
+      },
+      reaction_broadcast: ({ reaction }) => {
+        const item = {
+          ...reaction,
+          key: `${reaction.id || 'r'}-${Date.now()}-${Math.random()}`,
+          left: 15 + Math.random() * 70, // percentage horizontal placement
+        };
+        setReactions((prev) => [...prev.slice(-25), item]);
+        setTimeout(() => {
+          setReactions((prev) => prev.filter((r) => r.key !== item.key));
+        }, 2600);
+      },
       participant_joined: ({ state, participant }) => {
         applyState(state);
         toast.info(`${participant.name} joined the room.`);
@@ -194,10 +218,16 @@ export function RoomProvider({ children }) {
     const { roomId } = roomRef.current;
     if (socket.connected) socket.emit('leave_room');
     if (roomId) clearSession(roomId);
+    setChatMessages([]);
+    setReactions([]);
     update(EMPTY);
   }, [socket, update]);
 
-  const resetRoom = useCallback(() => update(EMPTY), [update]);
+  const resetRoom = useCallback(() => {
+    setChatMessages([]);
+    setReactions([]);
+    update(EMPTY);
+  }, [update]);
 
   const sendPlayback = useCallback(
     (type, position) => {
@@ -217,6 +247,27 @@ export function RoomProvider({ children }) {
     [emitAndWait],
   );
 
+  const sendChatMessage = useCallback(
+    (text) => {
+      if (!socket.connected) {
+        toast.error('You are offline.');
+        return;
+      }
+      const trimmed = (text || '').trim();
+      if (!trimmed) return;
+      socket.emit('chat_message', { text: trimmed });
+    },
+    [socket, toast],
+  );
+
+  const sendReaction = useCallback(
+    (emoji) => {
+      if (!socket.connected) return;
+      socket.emit('send_reaction', { emoji });
+    },
+    [socket],
+  );
+
   const value = useMemo(() => {
     const participants = room.state?.participants ?? [];
     const meParticipant = participants.find((p) => p.id === room.me?.participantId) ?? null;
@@ -230,6 +281,10 @@ export function RoomProvider({ children }) {
       isHost: role === 'host',
       canControl: role === 'host' || role === 'moderator', // UI hint only; the server enforces it
       host: participants.find((p) => p.id === room.state?.hostId) ?? null,
+      chatMessages,
+      reactions,
+      sendChatMessage,
+      sendReaction,
       createRoom,
       joinRoom,
       leaveRoom,
@@ -239,7 +294,7 @@ export function RoomProvider({ children }) {
       assignRole,
       removeParticipant,
     };
-  }, [room, status, createRoom, joinRoom, leaveRoom, resetRoom, sendPlayback, changeVideo, assignRole, removeParticipant]);
+  }, [room, status, chatMessages, reactions, sendChatMessage, sendReaction, createRoom, joinRoom, leaveRoom, resetRoom, sendPlayback, changeVideo, assignRole, removeParticipant]);
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }

@@ -1,28 +1,37 @@
-import { identityFor, roomChannel } from '../socketServer.js';
+import { BaseMessageHandler } from './BaseMessageHandler.js';
 import { assertPayloadObject } from '../../rooms/roomValidation.js';
 
 const publicActor = ({ id, name, role }) => ({ id, name, role });
 
-export function registerPlaybackHandlers(ctx, socket, on) {
-  const { io, roomService } = ctx;
-
-  // The sender is included in the broadcast on purpose: every client, including the
-  // one that issued the command, applies the same authoritative snapshot.
-  const broadcast = (result) => {
-    io.to(roomChannel(result.room.id)).emit('playback_updated', {
-      state: roomService.snapshot(result.room),
+/**
+ * Handles server-authoritative playback synchronization commands.
+ */
+export class PlaybackMessageHandler extends BaseMessageHandler {
+  broadcast(result) {
+    this.broadcastToRoom(result.room.id, 'playback_updated', {
+      state: this.roomService.snapshot(result.room),
       action: result.action,
       by: publicActor(result.actor),
     });
-  };
+  }
 
-  on('playback_command', (payload) => {
-    assertPayloadObject(payload);
-    broadcast(roomService.applyPlaybackCommand(identityFor(ctx, socket), payload));
-  });
+  register() {
+    this.on('playback_command', (payload) => {
+      assertPayloadObject(payload);
+      const identity = this.identity();
+      const result = this.roomService.applyPlaybackCommand(identity, payload);
+      this.broadcast(result);
+    });
 
-  on('change_video', (payload) => {
-    assertPayloadObject(payload);
-    broadcast(roomService.changeVideo(identityFor(ctx, socket), payload.videoUrl));
-  });
+    this.on('change_video', (payload) => {
+      assertPayloadObject(payload);
+      const identity = this.identity();
+      const result = this.roomService.changeVideo(identity, payload.videoUrl);
+      this.broadcast(result);
+    });
+  }
+}
+
+export function registerPlaybackHandlers(ctx, socket, on) {
+  new PlaybackMessageHandler(ctx, socket, on).register();
 }

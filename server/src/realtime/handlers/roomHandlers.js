@@ -1,4 +1,5 @@
-import { detachSocket, identityFor, roomChannel } from '../socketServer.js';
+import { BaseMessageHandler } from './BaseMessageHandler.js';
+import { detachSocket } from '../socketServer.js';
 import { AppError, ErrorCodes } from '../../utils/errors.js';
 import {
   assertPayloadObject,
@@ -6,116 +7,122 @@ import {
   parseOptionalToken,
 } from '../../rooms/roomValidation.js';
 
-export function registerRoomHandlers(ctx, socket, on) {
-  const { io, roomService, sessions } = ctx;
+/**
+ * Handles room lifecycle: creation, joining, rejoining, seat displacement, and departure.
+ */
+export class RoomMessageHandler extends BaseMessageHandler {
+  bind(room, participant) {
+    this.sessions.set(this.socket.id, { roomId: room.id, participantId: participant.id });
+    this.socket.join(this.channel(room.id));
+  }
 
-  const bind = (room, participant) => {
-    sessions.set(socket.id, { roomId: room.id, participantId: participant.id });
-    socket.join(roomChannel(room.id));
-  };
-
-  // A socket holds at most one seat. Leave any previous one before taking another.
-  const leaveCurrentSeat = () => {
-    const session = sessions.get(socket.id);
+  leaveCurrentSeat() {
+    const session = this.sessions.get(this.socket.id);
     if (!session) return;
-    detachSocket(ctx, socket.id);
+    detachSocket(this.ctx, this.socket.id);
     try {
-      roomService.leaveRoom({ ...session, socketId: socket.id });
+      this.roomService.leaveRoom({ ...session, socketId: this.socket.id });
     } catch {
       /* seat already gone */
     }
-  };
+  }
 
-  on('create_room', (payload) => {
-    assertPayloadObject(payload);
-    leaveCurrentSeat();
-    const { room, participant } = roomService.createRoom({
-      displayName: payload.displayName,
-      videoInput: payload.videoUrl,
-      socketId: socket.id,
+  register() {
+    this.on('create_room', (payload) => {
+      assertPayloadObject(payload);
+      this.leaveCurrentSeat();
+      const { room, participant } = this.roomService.createRoom({
+        displayName: payload.displayName,
+        videoInput: payload.videoUrl,
+        socketId: this.socket.id,
+      });
+      this.bind(room, participant);
+      this.emit('room_created', {
+        roomId: room.id,
+        participantId: participant.id,
+        token: participant.token,
+        state: this.roomService.snapshot(room),
+      });
     });
-    bind(room, participant);
-    socket.emit('room_created', {
-      roomId: room.id,
-      participantId: participant.id,
-      token: participant.token,
-      state: roomService.snapshot(room),
-    });
-  });
 
-  on('join_room', (payload) => {
-    assertPayloadObject(payload);
-    const roomId = normalizeRoomId(payload.roomId);
-    const token = parseOptionalToken(payload.token);
+    this.on('join_room', (payload) => {
+      assertPayloadObject(payload);
+      const roomId = normalizeRoomId(payload.roomId);
+      const token = parseOptionalToken(payload.token);
 
-    // Repeated join for the seat this socket already holds: just resend state.
-    const current = sessions.get(socket.id);
-    if (current?.roomId === roomId) {
-      const { room, participant } = roomService.requireMember({ ...current, socketId: socket.id });
-      socket.emit('room_joined', {
+      // Repeated join for the seat this socket already holds: just resend state.
+      const current = this.sessions.get(this.socket.id);
+      if (current?.roomId === roomId) {
+        const { room, participant } = this.roomService.requireMember({ ...current, socketId: this.socket.id });
+        this.emit('room_joined', {
+          roomId,
+          participantId: participant.id,
+          token: participant.token,
+          rejoined: true,
+          state: this.roomService.snapshot(room),
+        });
+        return;
+      }
+      if (current) this.leaveCurrentSeat();
+
+      const { room, participant, rejoined, displacedSocketId } = this.roomService.joinRoom({
+        roomId,
+        displayName: payload.displayName,
+        token,
+        socketId: this.socket.id,
+      });
+
+      // The same seat opened in another tab: the old socket is no longer authoritative.
+      if (displacedSocketId) {
+        const old = this.io.sockets.sockets.get(displacedSocketId);
+        detachSocket(this.ctx, displacedSocketId);
+        old?.emit('room_error', {
+          code: ErrorCodes.SESSION_REPLACED,
+          message: 'You joined this room from another tab, so this one was disconnected.',
+          event: 'join_room',
+        });
+      }
+
+      this.bind(room, participant);
+      const state = this.roomService.snapshot(room);
+      this.emit('room_joined', {
         roomId,
         participantId: participant.id,
         token: participant.token,
-        rejoined: true,
-        state: roomService.snapshot(room),
-      });
-      return;
-    }
-    if (current) leaveCurrentSeat();
-
-    const { room, participant, rejoined, displacedSocketId } = roomService.joinRoom({
-      roomId,
-      displayName: payload.displayName,
-      token,
-      socketId: socket.id,
-    });
-
-    // The same seat opened in another tab: the old socket is no longer authoritative.
-    if (displacedSocketId) {
-      const old = io.sockets.sockets.get(displacedSocketId);
-      detachSocket(ctx, displacedSocketId);
-      old?.emit('room_error', {
-        code: ErrorCodes.SESSION_REPLACED,
-        message: 'You joined this room from another tab, so this one was disconnected.',
-        event: 'join_room',
-      });
-    }
-
-    bind(room, participant);
-    const state = roomService.snapshot(room);
-    socket.emit('room_joined', {
-      roomId,
-      participantId: participant.id,
-      token: participant.token,
-      rejoined,
-      state,
-    });
-    if (rejoined) {
-      socket.to(roomChannel(roomId)).emit('room_state', { state });
-    } else {
-      socket.to(roomChannel(roomId)).emit('participant_joined', {
+        rejoined,
         state,
-        participant: { id: participant.id, name: participant.name, role: participant.role },
       });
-    }
-  });
+      if (rejoined) {
+        this.broadcastToPeers(roomId, 'room_state', { state });
+      } else {
+        this.broadcastToPeers(roomId, 'participant_joined', {
+          state,
+          participant: { id: participant.id, name: participant.name, role: participant.role },
+        });
+      }
+    });
 
-  on('leave_room', () => {
-    const session = sessions.get(socket.id);
-    if (!session) return;
-    leaveCurrentSeat();
-    socket.emit('room_left', { roomId: session.roomId });
-  });
+    this.on('leave_room', () => {
+      const session = this.sessions.get(this.socket.id);
+      if (!session) return;
+      this.leaveCurrentSeat();
+      this.emit('room_left', { roomId: session.roomId });
+    });
 
-  on('request_sync', () => {
-    const { room } = roomService.requireMember(identityFor(ctx, socket));
-    socket.emit('room_state', { state: roomService.snapshot(room) });
-  });
+    this.on('request_sync', () => {
+      const { room } = this.roomService.requireMember(this.identity());
+      this.emit('room_state', { state: this.roomService.snapshot(room) });
+    });
 
-  socket.on('disconnect', () => {
-    const session = detachSocket(ctx, socket.id);
-    if (session) roomService.handleDisconnect({ ...session, socketId: socket.id });
-  });
+    this.socket.on('disconnect', () => {
+      const session = detachSocket(this.ctx, this.socket.id);
+      if (session) this.roomService.handleDisconnect({ ...session, socketId: this.socket.id });
+    });
+  }
+}
+
+export function registerRoomHandlers(ctx, socket, on) {
+  new RoomMessageHandler(ctx, socket, on).register();
 }
 
 export { AppError };

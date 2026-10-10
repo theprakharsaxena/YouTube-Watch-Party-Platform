@@ -4,6 +4,8 @@ import { Actions, Roles, assertCan } from '../auth/permissions.js';
 import { newParticipantId, newReconnectToken, tokensMatch } from '../auth/sessionIdentity.js';
 import { AppError, ErrorCodes } from '../utils/errors.js';
 import { RoomStore } from './roomManager.js';
+import { Room } from './Room.js';
+import { Participant } from './Participant.js';
 import {
   parseAssignableRole,
   parseOptionalVideo,
@@ -37,14 +39,12 @@ export class RoomService extends EventEmitter {
     const name = sanitizeDisplayName(displayName, this.config.limits.maxDisplayNameLength);
     const videoId = parseOptionalVideo(videoInput);
 
-    const room = {
+    const room = new Room({
       id: this.store.generateUniqueId(),
       createdAt: this.now(),
       hostId: null,
-      participants: new Map(),
-      removedTokens: new Set(), // reconnect tokens of removed participants
       playback: { videoId, status: 'paused', position: 0, updatedAt: this.now(), revision: 0 },
-    };
+    });
     // The creator's role is assigned here, never taken from the payload.
     const host = this.#addParticipant(room, name, Roles.HOST, socketId);
     room.hostId = host.id;
@@ -200,6 +200,54 @@ export class RoomService extends EventEmitter {
     return { room, actor, target };
   }
 
+  // ---------- Chat & Reactions ----------
+
+  addChatMessage(identity, textInput) {
+    const { room, participant: actor } = this.requireMember(identity);
+    const text = (textInput || '').trim();
+    if (!text) {
+      throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Message cannot be empty.');
+    }
+    if (text.length > 500) {
+      throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Message cannot exceed 500 characters.');
+    }
+    const message = typeof room.addChatMessage === 'function'
+      ? room.addChatMessage({
+          senderId: actor.id,
+          senderName: actor.name,
+          senderRole: actor.role,
+          text,
+          type: 'user',
+          now: this.now(),
+        })
+      : {
+          id: `${room.id}:${this.now()}:${Math.random().toString(36).slice(2, 7)}`,
+          senderId: actor.id,
+          senderName: actor.name,
+          senderRole: actor.role,
+          text,
+          type: 'user',
+          timestamp: this.now(),
+        };
+    return { room, actor, message };
+  }
+
+  recordReaction(identity, emoji) {
+    const { room, participant: actor } = this.requireMember(identity);
+    const ALLOWED = ['🔥', '❤️', '😂', '👏', '🍿', '🤯', '🚀', '💯', '✨', '🎉'];
+    if (!ALLOWED.includes(emoji)) {
+      throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Unsupported reaction emoji.');
+    }
+    const reaction = {
+      id: `${room.id}:${this.now()}:${Math.random().toString(36).slice(2, 6)}`,
+      senderId: actor.id,
+      senderName: actor.name,
+      emoji,
+      timestamp: this.now(),
+    };
+    return { room, actor, reaction };
+  }
+
   // ---------- Snapshot ----------
 
   /** Client-safe view of a room. Never includes tokens or socket ids. */
@@ -219,6 +267,7 @@ export class RoomService extends EventEmitter {
         position: this.currentPosition(room), // extrapolated to "now" so clients need no clock sync
         revision: room.playback.revision,
       },
+      chat: typeof room.getRecentChat === 'function' ? room.getRecentChat(40) : [],
       serverTime: this.now(),
     };
   }
@@ -249,7 +298,7 @@ export class RoomService extends EventEmitter {
   }
 
   #addParticipant(room, name, role, socketId) {
-    const participant = {
+    const participant = new Participant({
       id: newParticipantId(),
       name,
       role,
@@ -257,7 +306,7 @@ export class RoomService extends EventEmitter {
       socketId,
       connected: true,
       joinedAt: this.now(),
-    };
+    });
     room.participants.set(participant.id, participant);
     return participant;
   }

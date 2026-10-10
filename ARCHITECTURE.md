@@ -153,3 +153,32 @@ If the host permanently disconnects, Sidelight ensures the room is never left or
    - Display name: Sanitized, whitespace-collapsed, capped at 24 characters.
    - Seek position: Upper bounded to prevent infinite floats.
 5. **Rate Limiting**: Sockets exceeding 40 events/burst are throttled with `RATE_LIMITED` error codes.
+
+---
+
+## 6. Enterprise Extensions & Scalability
+
+### Object-Oriented WebSocket Server Architecture
+The server is structured around clean domain models and message handling hierarchies:
+- **`Room` (`server/src/rooms/Room.js`)**: Encapsulates participant maps, playback revisioning, chat history buffer (capped at 100 messages), host transitions, and serialization.
+- **`Participant` (`server/src/rooms/Participant.js`)**: Encapsulates participant credentials, connection health, role changes, and secure projection methods (`toPublic()` vs `toPrivate()`).
+- **`BaseMessageHandler` (`server/src/realtime/handlers/BaseMessageHandler.js`)**: Base class providing identity extraction, safe broadcasting helpers, and uniform rate-limiting wrappers.
+- **Specialized Handlers**:
+  - `RoomMessageHandler`: Lifecycle operations (create, join, leave, reattach, displacement).
+  - `PlaybackMessageHandler`: Authoritative synchronization commands (play, pause, seek, change video).
+  - `RoleMessageHandler`: RBAC role assignments, host transfers, and participant kicks.
+  - `ChatMessageHandler`: In-room text messaging and live synchronized reaction bursts.
+
+### Horizontal Scalability & Redis Pub/Sub
+To scale across multiple server instances targeting **1,000+ concurrent users**, **100+ active rooms**, and **50+ users per room**:
+- **Socket.IO Redis Adapter (`server/src/realtime/redisAdapter.js`)**: Configured via `@socket.io/redis-adapter` and `redis`. When `REDIS_URL` is set, room broadcasts (`playback_updated`, `role_updated`, `chat_message`, `reaction_broadcast`) are published to Redis Pub/Sub channels and fanned out across all cluster instances.
+- **Load Balancing**: Standard Layer 7 reverse proxy (e.g., NGINX, AWS ALB) with WebSocket upgrade headers (`Upgrade: websocket`) and sticky sessions using the Socket.IO session cookie.
+- **Graceful Fallback**: If `REDIS_URL` is not configured, the server defaults to high-performance standalone in-memory routing.
+
+### Persistent Rooms
+- **`PersistentRoomStore` (`server/src/rooms/persistentRoomStore.js`)**: Extends `RoomStore` to persist room IDs, participants, chat history, and playback states to disk (`data/rooms.json`) or a document DB. Room states survive server restarts and reboots automatically.
+
+### In-Room Text Chat & Live Reactions
+- **Text Chat**: Real-time messaging with participant role badges (Host, Moderator, Participant), timestamp formatting, unread badge indicators, and automated system announcements.
+- **Floating Emoji Reactions**: Users can tap reaction emojis (`🔥`, `❤️`, `😂`, `👏`, `🍿`, `🤯`, `🚀`, `💯`) which float upward over the video stage in synchronized CSS animations for all room members.
+- **Host Transfer**: Room owners can transfer full Host control to any moderator or participant with an instant confirmation dialog and automatic role handoff.

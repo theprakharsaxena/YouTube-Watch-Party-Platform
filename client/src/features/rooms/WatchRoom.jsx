@@ -10,6 +10,8 @@ import RoleBadge from '../../components/RoleBadge.jsx';
 import PlayerStage from '../player/PlayerStage.jsx';
 import PlaybackControls from '../player/PlaybackControls.jsx';
 import ChangeVideoDialog from '../player/ChangeVideoDialog.jsx';
+import ReactionOverlay from '../reactions/ReactionOverlay.jsx';
+import ReactionPicker from '../reactions/ReactionPicker.jsx';
 import { usePlaybackSync } from '../player/usePlaybackSync.js';
 import { PlayerState } from '../player/youtubePlayer.js';
 import ParticipantRail from '../participants/ParticipantRail.jsx';
@@ -213,6 +215,8 @@ export default function WatchRoom() {
               onDoubleClick={toggleFullscreen}
             />
 
+            <ReactionOverlay reactions={room.reactions} />
+
             {isFullscreen && (
               <div className={`stage__fs-hud${showFsHud ? '' : ' stage__fs-hud--hidden'}`}>
                 <div className="status-row">
@@ -257,6 +261,7 @@ export default function WatchRoom() {
               </span>
             )}
             <span className="status-row__spacer" />
+            <ReactionPicker onSendReaction={room.sendReaction} />
             <RoleBadge role={role} />
           </div>
 
@@ -303,6 +308,8 @@ export default function WatchRoom() {
           isHost={room.isHost}
           hostConnected={state.hostConnected}
           open={railOpen}
+          messages={room.chatMessages}
+          onSendMessage={room.sendChatMessage}
           onClose={closeRail}
           onInvite={handleInvite}
           onAssignRole={room.assignRole}

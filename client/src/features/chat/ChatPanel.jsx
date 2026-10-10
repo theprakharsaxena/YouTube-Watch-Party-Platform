@@ -1,0 +1,90 @@
+import { useEffect, useRef, useState } from 'react';
+import { Send } from 'lucide-react';
+import Avatar from '../../components/Avatar.jsx';
+import RoleBadge from '../../components/RoleBadge.jsx';
+
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  const d = new Date(timestamp);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+export default function ChatPanel({ messages, meId, onSendMessage }) {
+  const [text, setText] = useState('');
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView?.({ behavior: 'smooth' });
+  }, [messages.length]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    onSendMessage(trimmed);
+    setText('');
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="chat-panel">
+      <div className="chat-panel__messages" tabIndex={0} aria-label="Chat message history">
+        {messages.length === 0 ? (
+          <div className="chat-panel__empty">
+            <p>No messages yet.</p>
+            <span>Say hi to everyone watching along!</span>
+          </div>
+        ) : (
+          messages.map((msg) => {
+            const isMe = msg.senderId === meId;
+            return (
+              <div
+                key={msg.id}
+                className={`chat-msg${isMe ? ' chat-msg--me' : ''}${msg.type === 'system' ? ' chat-msg--system' : ''}`}
+              >
+                {!isMe && msg.type !== 'system' && (
+                  <Avatar name={msg.senderName} />
+                )}
+                <div className="chat-msg__bubble">
+                  {msg.type !== 'system' && (
+                    <div className="chat-msg__header">
+                      <span className="chat-msg__name">
+                        {msg.senderName}
+                        {isMe && <span className="chat-msg__you"> (you)</span>}
+                      </span>
+                      {msg.senderRole && <RoleBadge role={msg.senderRole} />}
+                      <time className="chat-msg__time">{formatTime(msg.timestamp)}</time>
+                    </div>
+                  )}
+                  <p className="chat-msg__text">{msg.text}</p>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <form className="chat-panel__form" onSubmit={handleSubmit}>
+        <input
+          ref={inputRef}
+          type="text"
+          className="chat-panel__input"
+          placeholder="Send a message…"
+          maxLength={500}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="icon-btn chat-panel__send"
+          disabled={!text.trim()}
+          aria-label="Send message"
+        >
+          <Send size={16} aria-hidden="true" />
+        </button>
+      </form>
+    </div>
+  );
+}
