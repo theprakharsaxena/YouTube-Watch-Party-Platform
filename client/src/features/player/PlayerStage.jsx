@@ -1,5 +1,11 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { AlertTriangle, Film, Hourglass, Play, RefreshCw } from 'lucide-react';
 import Button from '../../components/Button.jsx';
+
+// Generous gap threshold (ms) to recognize double clicks even when clicks are not frequent or have a gap.
+const DOUBLE_CLICK_MAX_GAP_MS = 600;
+// Wait duration (ms) for a single click before executing play/pause, allowing relaxed 2nd clicks to cancel it.
+const SINGLE_CLICK_WAIT_MS = 320;
 
 /** The cinematic stage. The YouTube iframe lives in `hostRef`; everything else is overlay. */
 export default function PlayerStage({
@@ -16,9 +22,78 @@ export default function PlayerStage({
   onShieldClick,
   onDoubleClick,
 }) {
+  const clickTimerRef = useRef(null);
+  const lastClickTimeRef = useRef(0);
+  const singleClickExecutedRef = useRef(false);
+
+  // Clean up any pending click timer on unmount
+  useEffect(() => {
+    return () => {
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleStageClick = useCallback((e) => {
+    // If the click is on an interactive button or link inside an overlay, ignore
+    if (e.target.closest('button, a, input, select, textarea, [role="button"]')) {
+      return;
+    }
+    e.stopPropagation();
+
+    const now = Date.now();
+    const timeSinceLast = now - lastClickTimeRef.current;
+
+    // Detect double click even with a relaxed time gap (up to 600ms)
+    if (lastClickTimeRef.current > 0 && timeSinceLast <= DOUBLE_CLICK_MAX_GAP_MS) {
+      // 1. Cancel pending single-click timer
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+
+      // 2. If single-click already executed because the gap was between 320ms and 600ms,
+      // revert the accidental toggle so the video state remains undisturbed
+      if (singleClickExecutedRef.current) {
+        singleClickExecutedRef.current = false;
+        if (canControl && onShieldClick) {
+          onShieldClick();
+        }
+      }
+
+      // 3. Reset click counter so subsequent clicks don't re-toggle
+      lastClickTimeRef.current = 0;
+
+      // 4. Trigger fullscreen!
+      onDoubleClick?.();
+    } else {
+      // First click of a potential sequence
+      lastClickTimeRef.current = now;
+      singleClickExecutedRef.current = false;
+
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+
+      if (canControl && onShieldClick) {
+        clickTimerRef.current = setTimeout(() => {
+          singleClickExecutedRef.current = true;
+          clickTimerRef.current = null;
+          onShieldClick();
+        }, SINGLE_CLICK_WAIT_MS);
+      }
+    }
+  }, [canControl, onShieldClick, onDoubleClick]);
+
   return (
     <div className={`stage${isFullscreen ? ' stage--fullscreen' : ''}`}>
-      <div className="stage__frame">
+      <div
+        className="stage__frame"
+        onClick={handleStageClick}
+        onDoubleClick={(e) => e.preventDefault()}
+      >
         <div ref={hostRef} className="stage__player" />
 
         {hasVideo && !loadFailed && !ready && (
@@ -32,8 +107,8 @@ export default function PlayerStage({
         {hasVideo && ready && !playerError && (
           <div
             className={`stage__shield${canControl ? ' stage__shield--active' : ''}`}
-            onClick={canControl ? onShieldClick : undefined}
-            onDoubleClick={onDoubleClick}
+            onClick={handleStageClick}
+            onDoubleClick={(e) => e.preventDefault()}
             title={canControl ? 'Click to play/pause · Double-click for full screen' : 'Double-click for full screen'}
             aria-hidden="true"
           />

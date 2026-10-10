@@ -74,11 +74,15 @@ export default function WatchRoom() {
     };
   }, []);
 
+  const fsPendingRef = useRef(false);
+
   const toggleFullscreen = useCallback(async () => {
     const el = fullscreenContainerRef.current;
-    if (!el) return;
+    if (!el || fsPendingRef.current) return;
+    fsPendingRef.current = true;
     try {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const active = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!active) {
         if (el.requestFullscreen) await el.requestFullscreen();
         else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
       } else {
@@ -87,6 +91,10 @@ export default function WatchRoom() {
       }
     } catch {
       /* ignore */
+    } finally {
+      setTimeout(() => {
+        fsPendingRef.current = false;
+      }, 250);
     }
   }, []);
 
