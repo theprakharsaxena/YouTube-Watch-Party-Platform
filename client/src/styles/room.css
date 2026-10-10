@@ -190,13 +190,16 @@ input.scrubber:focus-visible { border-radius: 4px; }
 .chat-panel__form { display: flex; gap: 8px; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); }
 .chat-panel__input { flex: 1; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.88rem; color: var(--ivory); outline: none; }
 .chat-panel__input:focus { border-color: var(--amber); }
+.chat-panel__input:disabled { opacity: 0.55; cursor: not-allowed; background: rgba(0, 0, 0, 0.35); border-color: rgba(255, 255, 255, 0.08); }
 .chat-panel__send { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--amber); color: var(--amber-ink); border: 0; cursor: pointer; display: grid; place-items: center; }
-.chat-panel__send:disabled { opacity: 0.4; cursor: not-allowed; }
+.chat-panel__send:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ---------- Quick Reactions & Floating Particle Overlay ---------- */
 .reaction-picker { display: inline-flex; align-items: center; gap: 4px; background: rgba(11, 16, 32, 0.75); border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; backdrop-filter: blur(8px); }
+.reaction-picker--disabled { opacity: 0.55; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.08); }
 .reaction-picker__btn { background: transparent; border: 0; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; border-radius: 6px; transition: transform 0.15s var(--ease); line-height: 1; }
-.reaction-picker__btn:hover { transform: scale(1.35) translateY(-2px); }
+.reaction-picker__btn:not(:disabled):hover { transform: scale(1.35) translateY(-2px); }
+.reaction-picker__btn:disabled { cursor: not-allowed; opacity: 0.6; filter: grayscale(0.5); }
 .reaction-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 8; }
 .reaction-particle { position: absolute; bottom: 20px; font-size: 2.2rem; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)); animation: floatReaction 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 

@@ -45,6 +45,11 @@ export class AuthService {
     }
   }
 
+  isRegisteredUsername(username) {
+    if (!username || typeof username !== 'string') return false;
+    return this.#users.has(username.trim().toLowerCase());
+  }
+
   loadTokensFromDisk() {
     try {
       if (existsSync(this.#tokensFilePath)) {

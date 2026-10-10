@@ -16,8 +16,8 @@ export function createServer(config = loadConfig(), { store, authService: inject
       : process.env.PERSISTENCE_DRIVER === 'sqlite'
         ? new SqliteRoomStore()
         : new PersistentRoomStore());
-  const roomService = new RoomService({ config, store: roomStore });
   const authService = injectedAuth ?? new AuthService();
+  const roomService = new RoomService({ config, store: roomStore, authService });
   const app = createApp({ config, roomService, authService });
   const httpServer = http.createServer(app);
   const io = createSocketServer(httpServer, { roomService, config, authService });

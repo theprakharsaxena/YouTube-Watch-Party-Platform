@@ -222,6 +222,8 @@ button, input { font: inherit; color: inherit; }
 .role-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; border: 1px solid var(--line-strong); color: var(--ivory-dim); white-space: nowrap; }
 .role-badge--host { color: var(--amber); border-color: rgba(242, 166, 90, 0.45); background: rgba(242, 166, 90, 0.1); }
 .role-badge--moderator { color: var(--coral); border-color: rgba(239, 123, 106, 0.45); background: rgba(239, 123, 106, 0.1); }
+.role-badge--participant { color: var(--sage); border-color: rgba(144, 205, 171, 0.45); background: rgba(144, 205, 171, 0.1); }
+.role-badge--viewer { color: var(--ivory-mute); border-color: rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.05); }
 
 .conn-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 500; color: var(--ivory-mute); }
 .conn-badge--connected { color: var(--sage); }

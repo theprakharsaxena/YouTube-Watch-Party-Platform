@@ -23,6 +23,7 @@ export default function ParticipantRail({
   onInvite,
   onAssignRole,
   onRemove,
+  isViewer = false,
 }) {
   const [activeTab, setActiveTab] = useState('people');
   const [pending, setPending] = useState(null);
@@ -86,7 +87,7 @@ export default function ParticipantRail({
         </header>
 
         {activeTab === 'chat' ? (
-          <ChatPanel messages={messages} meId={meId} onSendMessage={onSendMessage} />
+          <ChatPanel messages={messages} meId={meId} onSendMessage={onSendMessage} isViewer={isViewer} />
         ) : (
           <>
             {!hostConnected && (

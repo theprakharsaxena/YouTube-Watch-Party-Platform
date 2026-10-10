@@ -9,7 +9,7 @@ function formatTime(timestamp) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ChatPanel({ messages, meId, onSendMessage }) {
+export default function ChatPanel({ messages, meId, onSendMessage, isViewer = false }) {
   const [text, setText] = useState('');
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -20,6 +20,7 @@ export default function ChatPanel({ messages, meId, onSendMessage }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isViewer) return;
     const trimmed = text.trim();
     if (!trimmed) return;
     onSendMessage(trimmed);
@@ -66,21 +67,30 @@ export default function ChatPanel({ messages, meId, onSendMessage }) {
         <div ref={bottomRef} />
       </div>
 
+      {isViewer && (
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '4px 8px 0', opacity: 0.85 }}>
+          Viewers can read messages. Log in to join the conversation.
+        </div>
+      )}
+
       <form className="chat-panel__form" onSubmit={handleSubmit}>
         <input
           ref={inputRef}
           type="text"
           className="chat-panel__input"
-          placeholder="Send a message…"
+          placeholder={isViewer ? 'Log in to join the chat…' : 'Send a message…'}
           maxLength={500}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          disabled={isViewer}
+          title={isViewer ? 'Log in to participate in the chat' : undefined}
         />
         <button
           type="submit"
           className="icon-btn chat-panel__send"
-          disabled={!text.trim()}
+          disabled={isViewer || !text.trim()}
           aria-label="Send message"
+          title={isViewer ? 'Log in to participate in the chat' : 'Send message'}
         >
           <Send size={16} aria-hidden="true" />
         </button>

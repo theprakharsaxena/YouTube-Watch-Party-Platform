@@ -272,6 +272,11 @@ export function RoomProvider({ children }) {
 
   const sendChatMessage = useCallback(
     (text) => {
+      const myRole = roomRef.current.state?.participants?.find((p) => p.id === roomRef.current.me?.participantId)?.role;
+      if (myRole === 'viewer') {
+        toast.info('Log in to participate in the chat.');
+        return;
+      }
       if (!socket.connected) {
         toast.error('You are offline.');
         return;
@@ -285,10 +290,15 @@ export function RoomProvider({ children }) {
 
   const sendReaction = useCallback(
     (emoji) => {
+      const myRole = roomRef.current.state?.participants?.find((p) => p.id === roomRef.current.me?.participantId)?.role;
+      if (myRole === 'viewer') {
+        toast.info('Log in to send reactions.');
+        return;
+      }
       if (!socket.connected) return;
       socket.emit('send_reaction', { emoji });
     },
-    [socket],
+    [socket, toast],
   );
 
   const requestChange = useCallback(

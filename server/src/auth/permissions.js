@@ -10,6 +10,9 @@ export const Roles = Object.freeze({
 export const Actions = Object.freeze({
   CONTROL_PLAYBACK: 'control_playback',
   CHANGE_VIDEO: 'change_video',
+  REQUEST_CHANGE: 'request_change',
+  SEND_CHAT: 'send_chat',
+  SEND_REACTION: 'send_reaction',
   MANAGE_ROLES: 'manage_roles',
   REMOVE_PARTICIPANT: 'remove_participant',
 });
@@ -18,6 +21,9 @@ export const Actions = Object.freeze({
 const PERMISSIONS = {
   [Actions.CONTROL_PLAYBACK]: [Roles.HOST, Roles.MODERATOR],
   [Actions.CHANGE_VIDEO]: [Roles.HOST, Roles.MODERATOR],
+  [Actions.REQUEST_CHANGE]: [Roles.HOST, Roles.MODERATOR, Roles.PARTICIPANT],
+  [Actions.SEND_CHAT]: [Roles.HOST, Roles.MODERATOR, Roles.PARTICIPANT],
+  [Actions.SEND_REACTION]: [Roles.HOST, Roles.MODERATOR, Roles.PARTICIPANT],
   [Actions.MANAGE_ROLES]: [Roles.HOST],
   [Actions.REMOVE_PARTICIPANT]: [Roles.HOST],
 };
@@ -25,6 +31,9 @@ const PERMISSIONS = {
 const DENIAL_MESSAGES = {
   [Actions.CONTROL_PLAYBACK]: 'Only the host or a moderator can control playback.',
   [Actions.CHANGE_VIDEO]: 'Only the host or a moderator can change the video.',
+  [Actions.REQUEST_CHANGE]: 'Only logged-in participants can request video changes.',
+  [Actions.SEND_CHAT]: 'Only logged-in participants can send chat messages.',
+  [Actions.SEND_REACTION]: 'Only logged-in participants can send reactions.',
   [Actions.MANAGE_ROLES]: 'Only the host can change roles.',
   [Actions.REMOVE_PARTICIPANT]: 'Only the host can remove participants.',
 };

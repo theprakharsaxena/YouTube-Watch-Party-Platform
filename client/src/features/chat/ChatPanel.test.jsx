@@ -22,6 +22,21 @@ describe('ChatPanel component', () => {
 
     expect(onSendMessage).toHaveBeenCalledWith('Loving the video!');
   });
+
+  it('disables chat input and send button for viewers instead of hiding them', () => {
+    const onSendMessage = vi.fn();
+    render(<ChatPanel messages={[]} meId="viewer-1" onSendMessage={onSendMessage} isViewer={true} />);
+
+    const input = screen.getByPlaceholderText(/log in to join the chat/i);
+    expect(input).toBeInTheDocument();
+    expect(input).toBeDisabled();
+
+    const sendBtn = screen.getByRole('button', { name: /send message/i });
+    expect(sendBtn).toBeInTheDocument();
+    expect(sendBtn).toBeDisabled();
+
+    expect(screen.getByText(/viewers can read messages/i)).toBeInTheDocument();
+  });
 });
 
 describe('ReactionPicker component', () => {
@@ -34,5 +49,17 @@ describe('ReactionPicker component', () => {
 
     await userEvent.click(fireBtn);
     expect(onSendReaction).toHaveBeenCalledWith('🔥');
+  });
+
+  it('disables reaction buttons when disabled is true instead of hiding them', async () => {
+    const onSendReaction = vi.fn();
+    render(<ReactionPicker onSendReaction={onSendReaction} disabled={true} />);
+
+    const fireBtn = screen.getByRole('button', { name: /react 🔥/i });
+    expect(fireBtn).toBeInTheDocument();
+    expect(fireBtn).toBeDisabled();
+
+    await userEvent.click(fireBtn);
+    expect(onSendReaction).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Eye, Film, RefreshCw, ShieldCheck, WifiOff } from 'lucide-react';
+import { Crown, Eye, Film, RefreshCw, ShieldCheck, UserCheck, WifiOff } from 'lucide-react';
 import { useRoom } from '../../hooks/useRoom.jsx';
 import { useYouTubePlayer } from '../../hooks/useYouTubePlayer.js';
 import { useToast } from '../../components/Toast.jsx';
@@ -22,7 +22,8 @@ import { expectedPosition } from '../../utils/sync.js';
 const ROLE_NOTES = {
   host: { icon: Crown, text: 'You are the host. You control playback, roles and who is in the room.' },
   moderator: { icon: ShieldCheck, text: 'You are a moderator. You can play, pause, seek and change the video.' },
-  participant: { icon: Eye, text: 'You are watching along. The host and moderators control playback for everyone.' },
+  participant: { icon: UserCheck, text: 'You are an active participant. You can chat, react and request video changes.' },
+  viewer: { icon: Eye, text: 'You are watching as a guest viewer. Log in to become a participant and suggest video changes.' },
 };
 
 /** Re-render a few times per second so the clock tracks the extrapolated room position. */
@@ -314,7 +315,7 @@ export default function WatchRoom() {
               </span>
             )}
             <span className="status-row__spacer" />
-            <ReactionPicker onSendReaction={room.sendReaction} />
+            <ReactionPicker onSendReaction={room.sendReaction} disabled={role === 'viewer'} />
             <RoleBadge role={role} />
           </div>
 
@@ -346,8 +347,19 @@ export default function WatchRoom() {
               <Button variant="secondary" icon={Film} onClick={() => setVideoDialogOpen(true)} id="change-video-button">
                 {hasVideo ? 'Change video' : 'Choose video'}
               </Button>
-            ) : (
+            ) : role === 'participant' ? (
               <Button variant="secondary" icon={Film} onClick={() => setSuggestDialogOpen(true)} id="suggest-video-button">
+                Suggest video
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                icon={Film}
+                onClick={() => toast.info('Log in to become an active participant and suggest videos.')}
+                id="viewer-suggest-button"
+                style={{ opacity: 0.75 }}
+                title="Log in to suggest videos"
+              >
                 Suggest video
               </Button>
             )}
@@ -371,6 +383,7 @@ export default function WatchRoom() {
           onInvite={handleInvite}
           onAssignRole={room.assignRole}
           onRemove={room.removeParticipant}
+          isViewer={role === 'viewer'}
         />
       </div>
 

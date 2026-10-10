@@ -107,4 +107,53 @@ describe('socket authentication', () => {
     retry.emit('join_room', { roomId }); // no token at all
     assert.equal((await once(retry, 'room_error')).code, 'REMOVED_FROM_ROOM');
   });
+
+  test('guests join as viewers and cannot request video changes; registered users join as participants', async () => {
+    const host = client(registered('hana_roles').token);
+    await once(host, 'connect');
+    host.emit('create_room', {});
+    const { roomId } = await once(host, 'room_created');
+
+    // 1. Unlogged-in guest joins without account -> viewer
+    const guestAuth = auth.guestLogin({ displayName: 'ViewerBob' });
+    const viewer = client(guestAuth.token);
+    await once(viewer, 'connect');
+    viewer.emit('join_room', { roomId, displayName: 'ViewerBob' });
+    const viewerJoined = await once(viewer, 'room_joined');
+    const viewerParticipant = viewerJoined.state.participants.find((p) => p.id === viewerJoined.participantId);
+    assert.equal(viewerParticipant.role, 'viewer');
+
+    // Viewer cannot request changes
+    const deniedPromise = once(viewer, 'room_error');
+    viewer.emit('request_change', { type: 'change_video', payload: { videoUrl: 'https://youtu.be/GG1_DsScm6U' } });
+    const denied = await deniedPromise;
+    assert.equal(denied.code, 'FORBIDDEN');
+
+    // Viewer cannot send chat messages
+    const chatDeniedPromise = once(viewer, 'room_error');
+    viewer.emit('chat_message', { text: 'Hello from viewer' });
+    const chatDenied = await chatDeniedPromise;
+    assert.equal(chatDenied.code, 'FORBIDDEN');
+
+    // Viewer cannot send reactions
+    const reactDeniedPromise = once(viewer, 'room_error');
+    viewer.emit('send_reaction', { emoji: '🔥' });
+    const reactDenied = await reactDeniedPromise;
+    assert.equal(reactDenied.code, 'FORBIDDEN');
+
+    // Viewer cannot be promoted to moderator/host
+    const promoDeniedPromise = once(host, 'room_error');
+    host.emit('assign_role', { targetId: viewerJoined.participantId, role: 'moderator' });
+    const promoDenied = await promoDeniedPromise;
+    assert.equal(promoDenied.code, 'ACCOUNT_REQUIRED');
+
+    // 2. Registered account joins -> participant
+    const regMember = client(registered('alice_member').token);
+    await once(regMember, 'connect');
+    const regJoinedPromise = once(regMember, 'room_joined');
+    regMember.emit('join_room', { roomId });
+    const regJoined = await regJoinedPromise;
+    const regParticipant = regJoined.state.participants.find((p) => p.id === regJoined.participantId);
+    assert.equal(regParticipant.role, 'participant');
+  });
 });

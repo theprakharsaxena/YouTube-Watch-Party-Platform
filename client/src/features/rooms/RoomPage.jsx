@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DoorClosed, LogIn, SearchX, UserX } from 'lucide-react';
+import { DoorClosed, Eye, LogIn, SearchX, UserCheck, UserX } from 'lucide-react';
 import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
+import AuthDialog from '../../components/AuthDialog.jsx';
 import { useRoom } from '../../hooks/useRoom.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { fetchRoomInfo } from '../../services/api.js';
 import { loadSession } from '../../services/socket.js';
 import { formatRoomCode, parseRoomInput } from '../../utils/formatters.js';
-import { validateDisplayName } from './validation.js';
+import { validateDisplayName, DISPLAY_NAME_MAX } from './validation.js';
 import WatchRoom from './WatchRoom.jsx';
 
 function StatusCard({ icon: Icon, title, children, action }) {
@@ -49,15 +50,22 @@ export default function RoomPage() {
   const code = parseRoomInput(rawId);
   const room = useRoom();
   const { phase, roomId: activeRoomId, endedReason, joinRoom, resetRoom } = room;
-  const { user, token, guestLogin } = useAuth();
+  const { user, token, isAuthenticated, guestLogin } = useAuth();
 
   const [lookup, setLookup] = useState({ status: 'checking' });
   const [name, setName] = useState(user?.username || '');
   const [nameError, setNameError] = useState('');
   const [joining, setJoining] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const autoJoinTried = useRef(null);
 
   const isInRoom = phase === 'joined' && activeRoomId === code;
+
+  useEffect(() => {
+    if (user?.username) {
+      setName(user.username);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!code || isInRoom || phase === 'ended') return undefined;
@@ -123,17 +131,34 @@ export default function RoomPage() {
 
   if (phase === 'joining' || loadSession(code)?.token) return <Loading label="Joining the room…" />;
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    const message = validateDisplayName(name);
+  async function handleJoinAsParticipant(event) {
+    if (event) event.preventDefault();
+    setNameError('');
+    if (!isAuthenticated) {
+      setAuthOpen(true);
+      return;
+    }
+    setJoining(true);
+    try {
+      await joinRoom({ roomId: code, displayName: user.username });
+    } catch (error) {
+      setNameError(error.message);
+      setJoining(false);
+    }
+  }
+
+  async function handleJoinAsViewer(event) {
+    if (event) event.preventDefault();
+    const clean = (name || '').trim();
+    const message = validateDisplayName(clean || 'Viewer');
     setNameError(message);
     if (message) return;
     setJoining(true);
     try {
-      if (!token) {
-        await guestLogin(name.trim());
+      if (!token || !user?.isGuest) {
+        await guestLogin(clean || 'Viewer');
       }
-      await joinRoom({ roomId: code, displayName: name.trim() });
+      await joinRoom({ roomId: code, displayName: clean || 'Viewer' });
     } catch (error) {
       setNameError(error.message);
       setJoining(false);
@@ -141,25 +166,109 @@ export default function RoomPage() {
   }
 
   const count = lookup.info?.participantCount ?? 0;
+
   return (
-    <FormShell
-      title="Join the watch party"
-      lead={`Room ${formatRoomCode(code)} · ${count} ${count === 1 ? 'person' : 'people'} inside`}
-    >
-      <form onSubmit={handleSubmit} noValidate className="form-stack">
-        <Field
-          label="Your display name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          error={nameError}
-          autoComplete="nickname"
-          autoFocus
-          placeholder="e.g. Ines"
-        />
-        <Button type="submit" variant="primary" size="lg" icon={LogIn} loading={joining}>
-          {joining ? 'Joining…' : 'Join room'}
-        </Button>
-      </form>
-    </FormShell>
+    <>
+      <FormShell
+        title="Join the watch party"
+        lead={`Room ${formatRoomCode(code)} · ${count} ${count === 1 ? 'person' : 'people'} inside`}
+      >
+        {isAuthenticated ? (
+          <form onSubmit={handleJoinAsParticipant} noValidate className="form-stack">
+            <div
+              className="form-alert"
+              style={{
+                background: 'rgba(144, 205, 171, 0.1)',
+                borderColor: 'rgba(144, 205, 171, 0.35)',
+                color: 'var(--sage)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.9rem',
+              }}
+            >
+              <UserCheck size={16} aria-hidden="true" />
+              <span>
+                Logged in as <strong>{user?.username}</strong> (Participant)
+              </span>
+            </div>
+            {nameError && (
+              <p className="form-alert" role="alert">
+                {nameError}
+              </p>
+            )}
+            <Button type="submit" variant="primary" size="lg" icon={LogIn} loading={joining}>
+              {joining ? 'Joining…' : 'Join room as Participant'}
+            </Button>
+          </form>
+        ) : (
+          <div className="form-stack">
+            {/* Option 1: Login before joining as participant */}
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+                display: 'grid',
+                gap: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                <UserCheck size={16} style={{ color: 'var(--sage)' }} aria-hidden="true" />
+                <span>Join as Participant</span>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+                Log in to chat, react, and request video changes. All participants must be logged in.
+              </p>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                icon={LogIn}
+                onClick={() => setAuthOpen(true)}
+              >
+                Log in / Register to Join
+              </Button>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem',
+                margin: '2px 0',
+              }}
+            >
+              <span style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
+              <span>OR JOIN AS VIEWER</span>
+              <span style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
+            </div>
+
+            {/* Option 2: Viewer join without login */}
+            <form onSubmit={handleJoinAsViewer} noValidate className="form-stack">
+              <div style={{ display: 'grid', gap: '6px' }}>
+                <Field
+                  label="Viewer display name (optional)"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  error={nameError}
+                  maxLength={DISPLAY_NAME_MAX}
+                  autoComplete="off"
+                  placeholder="Viewer"
+                  hint="Viewers simply join without logging in to watch in sync."
+                />
+              </div>
+              <Button type="submit" variant="secondary" size="lg" icon={Eye} loading={joining}>
+                {joining ? 'Joining…' : 'Join as Viewer (without login)'}
+              </Button>
+            </form>
+          </div>
+        )}
+      </FormShell>
+      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+    </>
   );
 }

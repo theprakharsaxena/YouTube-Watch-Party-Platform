@@ -25,10 +25,11 @@ import {
  *   'participant_status' { roomId, participantId, connected }
  */
 export class RoomService extends EventEmitter {
-  constructor({ config = loadConfig(), store = new RoomStore(), now = () => Date.now() } = {}) {
+  constructor({ config = loadConfig(), store = new RoomStore(), authService = null, now = () => Date.now() } = {}) {
     super();
     this.config = config;
     this.store = store;
+    this.authService = authService;
     this.now = now;
     this.graceTimers = new Map(); // `${roomId}:${participantId}` -> Timeout
   }
@@ -94,8 +95,23 @@ export class RoomService extends EventEmitter {
     if (room.participants.size >= this.config.limits.maxParticipantsPerRoom) {
       throw new AppError(ErrorCodes.ROOM_FULL, 'This room is full.');
     }
+
+    const isRegistered = Boolean(user && !user.isGuest);
+
+    // Prevent unauthenticated guests from claiming registered usernames:
+    if (!isRegistered && displayName && this.authService?.isRegisteredUsername?.(displayName)) {
+      throw new AppError(
+        ErrorCodes.INVALID_NAME,
+        `"${displayName}" is a registered account. Please log in to join as this user, or choose another name to join as Viewer.`
+      );
+    }
+
+    // Role assignment:
+    // Logged in users join as PARTICIPANT.
+    // Unlogged-in users (guests) join as VIEWER.
+    const role = (!this.config.auth?.required || isRegistered) ? Roles.PARTICIPANT : Roles.VIEWER;
     const name = sanitizeDisplayName(user?.username ?? displayName, this.config.limits.maxDisplayNameLength);
-    const participant = this.#addParticipant(room, name, Roles.PARTICIPANT, socketId, userId);
+    const participant = this.#addParticipant(room, name, role, socketId, userId);
     return { room, participant, rejoined: false, displacedSocketId: null };
   }
 
@@ -194,6 +210,11 @@ export class RoomService extends EventEmitter {
       throw new AppError(ErrorCodes.INVALID_TARGET, 'You cannot change your own role.');
     }
 
+    const isTargetGuest = !target.userId || target.userId.startsWith('g_');
+    if (this.config.auth?.required && [Roles.HOST, Roles.MODERATOR].includes(role) && isTargetGuest) {
+      throw new AppError(ErrorCodes.ACCOUNT_REQUIRED, 'Only registered accounts can be made Host or Moderator. Viewers must create an account first.');
+    }
+
     if (role === Roles.HOST) {
       // Ownership transfer: the previous host stays on as a moderator.
       target.role = Roles.HOST;
@@ -223,6 +244,7 @@ export class RoomService extends EventEmitter {
 
   addChatMessage(identity, textInput) {
     const { room, participant: actor } = this.requireMember(identity);
+    assertCan(actor, Actions.SEND_CHAT);
     const text = (textInput || '').trim();
     if (!text) {
       throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Message cannot be empty.');
@@ -253,6 +275,7 @@ export class RoomService extends EventEmitter {
 
   recordReaction(identity, emoji) {
     const { room, participant: actor } = this.requireMember(identity);
+    assertCan(actor, Actions.SEND_REACTION);
     const ALLOWED = ['🔥', '❤️', '😂', '👏', '🍿', '🤯', '🚀', '💯', '✨', '🎉'];
     if (!ALLOWED.includes(emoji)) {
       throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Unsupported reaction emoji.');
@@ -271,6 +294,7 @@ export class RoomService extends EventEmitter {
 
   requestChange(identity, { type, payload }) {
     const { room, participant: actor } = this.requireMember(identity);
+    assertCan(actor, Actions.REQUEST_CHANGE);
     if (!type || !payload) {
       throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Invalid change request.');
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User, UserCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Brand from '../../components/Brand.jsx';
 import InteractiveRoomPreview from './InteractiveRoomPreview.jsx';
@@ -9,12 +9,13 @@ import AuthDialog from '../../components/AuthDialog.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 const PERMISSIONS = [
-  { action: 'Watch in sync', host: true, moderator: true, participant: true },
-  { action: 'Play, pause and seek', host: true, moderator: true, participant: false },
-  { action: 'Change the video directly', host: true, moderator: true, participant: false },
-  { action: 'Request video change (with approval)', host: true, moderator: true, participant: true },
-  { action: 'Promote moderators & viewers', host: true, moderator: false, participant: false },
-  { action: 'Remove participants & transfer host', host: true, moderator: false, participant: false },
+  { action: 'Requires login / registered account', host: true, moderator: true, participant: true, viewer: false },
+  { action: 'Watch in sync', host: true, moderator: true, participant: true, viewer: true },
+  { action: 'Play, pause and seek', host: true, moderator: true, participant: false, viewer: false },
+  { action: 'Change the video directly', host: true, moderator: true, participant: false, viewer: false },
+  { action: 'Request video change (with approval)', host: true, moderator: true, participant: true, viewer: false },
+  { action: 'Promote moderators & viewers', host: true, moderator: false, participant: false, viewer: false },
+  { action: 'Remove participants & transfer host', host: true, moderator: false, participant: false, viewer: false },
 ];
 
 function Mark({ on }) {
@@ -125,7 +126,8 @@ export default function LandingPage() {
                   <th scope="col"><span className="sr-only">Action</span></th>
                   <th scope="col"><Crown size={14} aria-hidden="true" /> Host</th>
                   <th scope="col"><ShieldCheck size={14} aria-hidden="true" /> Moderator</th>
-                  <th scope="col"><Eye size={14} aria-hidden="true" /> Participant</th>
+                  <th scope="col"><UserCheck size={14} aria-hidden="true" /> Participant</th>
+                  <th scope="col"><Eye size={14} aria-hidden="true" /> Viewer</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,6 +137,7 @@ export default function LandingPage() {
                     <td><Mark on={row.host} /></td>
                     <td><Mark on={row.moderator} /></td>
                     <td><Mark on={row.participant} /></td>
+                    <td><Mark on={row.viewer} /></td>
                   </tr>
                 ))}
               </tbody>
