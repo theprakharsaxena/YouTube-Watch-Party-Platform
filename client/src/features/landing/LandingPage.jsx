@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User } from 'lucide-react';
+import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Brand from '../../components/Brand.jsx';
-import RoomPreview from './RoomPreview.jsx';
+import InteractiveRoomPreview from './InteractiveRoomPreview.jsx';
+import InteractiveCanvas from './InteractiveCanvas.jsx';
+import InteractiveSyncFlow from './InteractiveSyncFlow.jsx';
 import AuthDialog from '../../components/AuthDialog.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -29,6 +31,9 @@ export default function LandingPage() {
 
   return (
     <div className="landing">
+      {/* Interactive ambient particles & cursor constellation backdrop */}
+      <InteractiveCanvas />
+
       <header className="landing__nav">
         <Brand />
         <nav aria-label="Primary" className="landing__nav-links">
@@ -58,7 +63,10 @@ export default function LandingPage() {
       <main>
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero__copy">
-            <p className="eyebrow">A shared cinema for small groups</p>
+            <p className="eyebrow">
+              <Sparkles size={14} aria-hidden="true" />
+              <span>A shared cinema for small groups</span>
+            </p>
             <h1 id="hero-title" className="hero__title">
               One video.<br />
               <em>Everyone in sync.</em>
@@ -76,12 +84,16 @@ export default function LandingPage() {
             <p className="hero__fine">No account needed. Pick a name and you're in.</p>
           </div>
           <div className="hero__preview">
-            <RoomPreview />
+            <InteractiveRoomPreview />
           </div>
         </section>
 
         <section id="how-it-works" className="section" aria-labelledby="how-title">
           <h2 id="how-title" className="section__title">How the sync works</h2>
+          <p className="section__lead">
+            Real-time lockstep playback powered by central server clock synchronization.
+          </p>
+          <InteractiveSyncFlow />
           <ol className="steps">
             <li>
               <span className="steps__icon"><Link2 size={18} aria-hidden="true" /></span>
