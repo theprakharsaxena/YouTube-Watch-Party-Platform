@@ -2,9 +2,35 @@
 
 /* ---------- Top bar ---------- */
 .topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; min-height: var(--topbar-h); padding: 6px clamp(12px, 2vw, 24px); background: rgba(11, 16, 32, 0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-.topbar__room { display: flex; align-items: baseline; gap: 8px; padding-left: 14px; border-left: 1px solid var(--line); min-width: 0; }
+.topbar__room {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  margin-left: 2px;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  min-width: 0;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.topbar__room:hover {
+  background: rgba(244, 236, 220, 0.08);
+}
+.topbar__room:hover .topbar__code {
+  color: var(--amber);
+}
 .topbar__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ivory-mute); }
-.topbar__code { font-variant-numeric: tabular-nums; letter-spacing: 0.08em; font-weight: 600; font-size: 0.92rem; }
+.topbar__code { font-variant-numeric: tabular-nums; letter-spacing: 0.08em; font-weight: 600; font-size: 0.92rem; color: var(--ivory); transition: color var(--t-fast) var(--ease); }
+.topbar__copy-icon { color: var(--ivory-mute); opacity: 0.55; transition: opacity var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+.topbar__room:hover .topbar__copy-icon { opacity: 1; color: var(--amber); }
+.topbar__code-copied { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--sage); font-weight: 600; letter-spacing: 0.02em; animation: fadeIn 150ms ease; }
 .topbar__spacer { flex: 1; }
 .topbar__people { display: none; }
 
