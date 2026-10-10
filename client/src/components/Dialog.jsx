@@ -2,45 +2,53 @@ import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 /**
- * Accessible modal built on the native <dialog>: focus trapping, Escape handling and
- * inert background come from the browser. We add backdrop-click dismissal and focus return.
+ * Accessible modal dialog with focus restoration, Escape key dismissal,
+ * and backdrop-click handling that integrates seamlessly beneath high-priority toasts.
  */
 export default function Dialog({ open, onClose, title, description, children, footer, labelledBy = 'dialog-title' }) {
-  const ref = useRef(null);
   const previousFocus = useRef(null);
 
   useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return undefined;
-    if (open && !dialog.open) {
-      previousFocus.current = document.activeElement;
-      dialog.showModal();
-    }
-    if (!open && dialog.open) dialog.close();
-    return () => {
-      if (dialog.open) dialog.close();
-    };
-  }, [open]);
+    if (!open) return undefined;
+    previousFocus.current = document.activeElement;
 
-  useEffect(() => {
-    if (!open && previousFocus.current instanceof HTMLElement) previousFocus.current.focus();
-  }, [open]);
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Lock body scroll while dialog is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      if (previousFocus.current instanceof HTMLElement) {
+        previousFocus.current.focus();
+      }
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
-    <dialog
-      ref={ref}
-      className="dialog"
-      aria-labelledby={labelledBy}
-      aria-describedby={description ? `${labelledBy}-desc` : undefined}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
+    <div
+      className="dialog-overlay"
       onMouseDown={(event) => {
-        if (event.target === ref.current) onClose(); // click on the backdrop
+        if (event.target === event.currentTarget) onClose(); // click on the backdrop
       }}
     >
-      {open && (
+      <div
+        className="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        aria-describedby={description ? `${labelledBy}-desc` : undefined}
+      >
         <div className="dialog__panel">
           <header className="dialog__header">
             <h2 id={labelledBy} className="dialog__title">{title}</h2>
@@ -52,7 +60,7 @@ export default function Dialog({ open, onClose, title, description, children, fo
           <div className="dialog__body">{children}</div>
           {footer && <footer className="dialog__footer">{footer}</footer>}
         </div>
-      )}
-    </dialog>
+      </div>
+    </div>
   );
 }

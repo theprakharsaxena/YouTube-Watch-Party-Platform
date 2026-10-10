@@ -248,8 +248,36 @@ button, input { font: inherit; color: inherit; }
 .avatar { flex: none; width: var(--avatar-size, 32px); height: var(--avatar-size, 32px); border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--avatar-tint) 22%, var(--ink-800)); border: 1px solid color-mix(in srgb, var(--avatar-tint) 55%, transparent); color: var(--avatar-tint); font-size: calc(var(--avatar-size, 32px) * 0.38); font-weight: 600; }
 .avatar--dimmed { opacity: 0.45; }
 
-/* ---------- Dialog (native <dialog>) ---------- */
-.dialog { padding: 0; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--ink-850); color: var(--ivory); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); box-shadow: var(--shadow-pop); }
+/* ---------- Dialog ---------- */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5, 8, 16, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  animation: overlayFade var(--t-fast) var(--ease);
+}
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--ink-850);
+  color: var(--ivory);
+  width: min(460px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  box-shadow: var(--shadow-pop);
+  animation: pop var(--t-med) var(--ease);
+  overflow-y: auto;
+}
 .dialog::backdrop { background: rgba(5, 8, 16, 0.72); }
 .dialog[open] { animation: pop var(--t-med) var(--ease); }
 @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.985); } }
@@ -260,7 +288,7 @@ button, input { font: inherit; color: inherit; }
 .dialog__actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 
 /* ---------- Toasts ---------- */
-.toast-region { position: fixed; z-index: 100; right: 16px; bottom: 16px; display: grid; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
+.toast-region { position: fixed; z-index: 9999; right: 16px; bottom: 16px; display: grid; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; border-radius: var(--radius-md); background: var(--ink-700); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop); font-size: 0.92rem; animation: pop var(--t-med) var(--ease); }
 .toast span { flex: 1; }
 .toast--success svg:first-child { color: var(--sage); }
