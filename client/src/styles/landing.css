@@ -757,12 +757,13 @@ main {
   gap: 10px;
 }
 
-.play-btn--interactive {
+.preview__transport .play-btn--interactive {
   background: rgba(244, 236, 220, 0.08);
   border: 1px solid var(--line-strong);
   color: var(--amber);
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -771,10 +772,11 @@ main {
   transition: all var(--t-fast) var(--ease);
 }
 
-.play-btn--interactive:hover {
-  background: rgba(242, 166, 90, 0.2);
-  border-color: var(--amber);
-  transform: scale(1.08);
+.preview__transport .play-btn--interactive:hover:not(:disabled) {
+  background: rgba(244, 236, 220, 0.08);
+  border-color: var(--line-strong);
+  color: var(--amber);
+  transform: none;
 }
 
 .scrubber--interactive {
