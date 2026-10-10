@@ -16,6 +16,35 @@ export function AuthProvider({ children }) {
     }
   });
 
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 401 && !cancelled) {
+            saveAuth(null, null);
+          }
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled && data?.user) {
+          setUser(data.user);
+          try {
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const saveAuth = (tokenVal, userVal) => {
     setToken(tokenVal);
     setUser(userVal);
@@ -24,7 +53,13 @@ export function AuthProvider({ children }) {
     if (userVal) localStorage.setItem(USER_KEY, JSON.stringify(userVal));
     else localStorage.removeItem(USER_KEY);
     try {
-      getSocket().auth = { token: tokenVal || undefined };
+      const sock = getSocket();
+      sock.auth = { token: tokenVal || undefined };
+      if (!tokenVal && sock.connected) {
+        sock.disconnect();
+      } else if (tokenVal && !sock.connected) {
+        sock.connect();
+      }
     } catch {
       /* socket not initialized yet */
     }

@@ -7,10 +7,16 @@ export class AuthService {
   #users = new Map(); // username.toLowerCase() -> { id, username, salt, hash, createdAt }
   #tokens = new Map(); // token -> { userId, username, isGuest, expiresAt }
   #filePath;
+  #tokensFilePath;
 
-  constructor({ filePath = resolve(process.cwd(), 'data/users.json') } = {}) {
+  constructor({
+    filePath = resolve(process.cwd(), 'data/users.json'),
+    tokensFilePath = null,
+  } = {}) {
     this.#filePath = filePath;
+    this.#tokensFilePath = tokensFilePath || resolve(dirname(filePath), 'tokens.json');
     this.loadFromDisk();
+    this.loadTokensFromDisk();
   }
 
   loadFromDisk() {
@@ -34,6 +40,47 @@ export class AuthService {
       const dir = dirname(this.#filePath);
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
       writeFileSync(this.#filePath, JSON.stringify([...this.#users.values()], null, 2), 'utf8');
+    } catch {
+      /* ignore */
+    }
+  }
+
+  loadTokensFromDisk() {
+    try {
+      if (existsSync(this.#tokensFilePath)) {
+        const raw = readFileSync(this.#tokensFilePath, 'utf8');
+        const data = JSON.parse(raw);
+        if (Array.isArray(data)) {
+          const now = Date.now();
+          for (const item of data) {
+            if (item.token && item.expiresAt > now) {
+              this.#tokens.set(item.token, {
+                userId: item.userId,
+                username: item.username,
+                isGuest: Boolean(item.isGuest),
+                expiresAt: item.expiresAt,
+              });
+            }
+          }
+        }
+      }
+    } catch {
+      /* ignore cold start */
+    }
+  }
+
+  saveTokensToDisk() {
+    try {
+      const dir = dirname(this.#tokensFilePath);
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+      const list = [];
+      const now = Date.now();
+      for (const [token, session] of this.#tokens.entries()) {
+        if (session.expiresAt > now) {
+          list.push({ token, ...session });
+        }
+      }
+      writeFileSync(this.#tokensFilePath, JSON.stringify(list, null, 2), 'utf8');
     } catch {
       /* ignore */
     }
@@ -70,6 +117,7 @@ export class AuthService {
 
     const token = randomBytes(32).toString('hex');
     this.#tokens.set(token, { userId: id, username: cleanUser, isGuest: false, expiresAt: Date.now() + 30 * 86400000 });
+    this.saveTokensToDisk();
     return { token, user: { id, username: cleanUser, isGuest: false } };
   }
 
@@ -92,6 +140,7 @@ export class AuthService {
 
     const token = randomBytes(32).toString('hex');
     this.#tokens.set(token, { userId: user.id, username: user.username, isGuest: false, expiresAt: Date.now() + 30 * 86400000 });
+    this.saveTokensToDisk();
     return { token, user: { id: user.id, username: user.username, isGuest: false } };
   }
 
@@ -100,6 +149,7 @@ export class AuthService {
     const id = 'g_' + randomBytes(6).toString('hex');
     const token = randomBytes(32).toString('hex');
     this.#tokens.set(token, { userId: id, username: clean, isGuest: true, expiresAt: Date.now() + 86400000 });
+    this.saveTokensToDisk();
     return { token, user: { id, username: clean, isGuest: true } };
   }
 
@@ -107,7 +157,10 @@ export class AuthService {
     if (!token) return null;
     const session = this.#tokens.get(token);
     if (!session || session.expiresAt < Date.now()) {
-      if (session) this.#tokens.delete(token);
+      if (session) {
+        this.#tokens.delete(token);
+        this.saveTokensToDisk();
+      }
       return null;
     }
     return { id: session.userId, username: session.username, isGuest: session.isGuest };

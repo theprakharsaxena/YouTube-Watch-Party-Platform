@@ -49,7 +49,7 @@ export default function RoomPage() {
   const code = parseRoomInput(rawId);
   const room = useRoom();
   const { phase, roomId: activeRoomId, endedReason, joinRoom, resetRoom } = room;
-  const { user } = useAuth();
+  const { user, token, guestLogin } = useAuth();
 
   const [lookup, setLookup] = useState({ status: 'checking' });
   const [name, setName] = useState(user?.username || '');
@@ -130,6 +130,9 @@ export default function RoomPage() {
     if (message) return;
     setJoining(true);
     try {
+      if (!token) {
+        await guestLogin(name.trim());
+      }
       await joinRoom({ roomId: code, displayName: name.trim() });
     } catch (error) {
       setNameError(error.message);
