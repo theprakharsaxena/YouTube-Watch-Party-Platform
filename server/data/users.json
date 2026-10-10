@@ -12,5 +12,12 @@
     "salt": "bf6618d35355a3d09c8d31fc6cf417e9",
     "hash": "8e869bfcb7d85a165ea54b74c60e0825026876272dfd5340f85f097a71c1085390be7e659e6744289c504484403b6f22af5b87b09ddbc911ae87bb5f6e7587c7",
     "createdAt": 1791627359871
+  },
+  {
+    "id": "u_a1fad7c5cd17daa5",
+    "username": "admin",
+    "salt": "aef9c2515bc5dce8a4b28d4e91b43b29",
+    "hash": "55727a0c5ac6950f8a8e84994821a98f4aba2c19ff5c0c54bded78ba0739b651dc97824fb25cef406527af8d763d9fc8065c42e37160aad22db73c45c645e2fe",
+    "createdAt": 1791643332587
   }
 ]

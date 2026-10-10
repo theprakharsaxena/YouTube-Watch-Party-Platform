@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogIn, UserPlus, X } from 'lucide-react';
+import { Eye, EyeOff, Lock, LogIn, User, UserPlus } from 'lucide-react';
 import Dialog from './Dialog.jsx';
 import Button from './Button.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -9,6 +9,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const toast = useToast();
@@ -42,45 +43,83 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
       description="Save your watch party identity and sign in before joining rooms."
       labelledBy="auth-dialog-title"
     >
-      <form onSubmit={handleSubmit} className="auth-form">
+      <div className="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'login'}
+          className={`auth-tab ${mode === 'login' ? 'auth-tab--active' : ''}`}
+          onClick={() => setMode('login')}
+        >
+          Log In
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'register'}
+          className={`auth-tab ${mode === 'register' ? 'auth-tab--active' : ''}`}
+          onClick={() => setMode('register')}
+        >
+          Sign Up
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="form-stack auth-form">
         <label className="field">
           <span className="field__label">Username</span>
-          <input
-            type="text"
-            className="input"
-            placeholder="e.g. hana_123"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            minLength={3}
-            maxLength={24}
-            autoFocus
-          />
+          <div className="auth-input-box">
+            <User size={18} className="auth-input-icon" aria-hidden="true" />
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              placeholder="e.g. hana_123"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              minLength={3}
+              maxLength={24}
+              autoFocus
+            />
+          </div>
         </label>
 
         <label className="field">
           <span className="field__label">Password</span>
-          <input
-            type="password"
-            className="input"
-            placeholder="At least 6 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
+          <div className="auth-input-box">
+            <Lock size={18} className="auth-input-icon" aria-hidden="true" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+            <button
+              type="button"
+              className="auth-input-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+            </button>
+          </div>
         </label>
 
-        <div className="dialog__actions" style={{ marginTop: '16px' }}>
+        <div className="dialog__actions" style={{ marginTop: '8px' }}>
           <Button variant="ghost" onClick={onClose} type="button">
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading} icon={mode === 'login' ? LogIn : UserPlus}>
             {loading ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Sign Up'}
           </Button>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '0.85rem', color: 'var(--ivory-mute)' }}>
+        <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '0.85rem', color: 'var(--ivory-mute)' }}>
           {mode === 'login' ? (
             <span>
               Don't have an account?{' '}
