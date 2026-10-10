@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "P67RB5KGQZ",
+    "createdAt": 1791659318922,
+    "hostId": "2ed96449",
+    "participants": [
+      {
+        "id": "2ed96449",
+        "userId": "u_7c0196b020d4960d",
+        "name": "Prakhar Saxena",
+        "role": "host",
+        "socketId": null,
+        "token": "A1mMMONDj_5x6lHlJPUzYVcLSTnme4cE",
+        "connected": false,
+        "joinedAt": 1791659318922,
+        "updatedAt": 1791659318922
+      }
+    ],
+    "removedTokens": [],
+    "removedUserIds": [],
+    "playback": {
+      "videoId": "xvT1jH8B9AM",
+      "status": "paused",
+      "position": 0,
+      "updatedAt": 1791659318922,
+      "revision": 0
+    },
+    "chatMessages": [],
+    "pendingRequests": []
+  }
+]
