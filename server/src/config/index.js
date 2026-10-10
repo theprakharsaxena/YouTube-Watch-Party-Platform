@@ -17,6 +17,13 @@ export function loadConfig(env = process.env) {
       // How long a disconnected participant keeps their seat (and role) for a reconnect.
       reconnectGraceMs: Number(env.RECONNECT_GRACE_MS) || 45_000,
     },
+    auth: {
+      // Every socket must present a valid session token (guest or registered). REQUIRE_AUTH=false disables.
+      required: env.REQUIRE_AUTH !== 'false',
+      // Creating a room (becoming host) needs a registered account; guests may only join.
+      // Set ALLOW_GUEST_HOSTING=true to let guests host too.
+      hostRequiresAccount: env.ALLOW_GUEST_HOSTING !== 'true',
+    },
     rateLimit: {
       // Per-socket token bucket applied to every client event.
       capacity: 40,

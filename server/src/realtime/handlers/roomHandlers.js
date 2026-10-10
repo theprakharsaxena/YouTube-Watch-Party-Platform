@@ -35,6 +35,7 @@ export class RoomMessageHandler extends BaseMessageHandler {
         displayName: payload.displayName,
         videoInput: payload.videoUrl,
         socketId: this.socket.id,
+        user: this.socket.data.user ?? null,
       });
       this.bind(room, participant);
       this.emit('room_created', {
@@ -70,6 +71,7 @@ export class RoomMessageHandler extends BaseMessageHandler {
         displayName: payload.displayName,
         token,
         socketId: this.socket.id,
+        user: this.socket.data.user ?? null,
       });
 
       // The same seat opened in another tab: the old socket is no longer authoritative.

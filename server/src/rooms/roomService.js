@@ -35,8 +35,12 @@ export class RoomService extends EventEmitter {
 
   // ---------- Lifecycle ----------
 
-  createRoom({ displayName, videoInput, socketId }) {
-    const name = sanitizeDisplayName(displayName, this.config.limits.maxDisplayNameLength);
+  createRoom({ displayName, videoInput, socketId, user = null }) {
+    if (this.config.auth?.required && this.config.auth.hostRequiresAccount && (!user || user.isGuest)) {
+      throw new AppError(ErrorCodes.ACCOUNT_REQUIRED, 'Create an account or log in to host a room. Guests can join rooms.');
+    }
+    // With auth on, the name comes from the verified account, never from the payload.
+    const name = sanitizeDisplayName(user?.username ?? displayName, this.config.limits.maxDisplayNameLength);
     const videoId = parseOptionalVideo(videoInput);
 
     const room = new Room({
@@ -46,7 +50,7 @@ export class RoomService extends EventEmitter {
       playback: { videoId, status: 'paused', position: 0, updatedAt: this.now(), revision: 0 },
     });
     // The creator's role is assigned here, never taken from the payload.
-    const host = this.#addParticipant(room, name, Roles.HOST, socketId);
+    const host = this.#addParticipant(room, name, Roles.HOST, socketId, user?.id ?? null);
     room.hostId = host.id;
     this.store.set(room);
     return { room, participant: host };
@@ -58,15 +62,29 @@ export class RoomService extends EventEmitter {
    * state currently says that seat has). A missing/unknown token always yields a
    * fresh Participant seat.
    */
-  joinRoom({ roomId, displayName, token, socketId }) {
+  joinRoom({ roomId, displayName, token, socketId, user = null }) {
     const room = this.#requireRoom(roomId);
+    const userId = user?.id ?? null;
+    const removedMsg = 'You were removed from this room by the host.';
 
+    // A kicked account stays kicked even if it clears its reconnect token.
+    if (userId && room.removedUserIds.has(userId)) {
+      throw new AppError(ErrorCodes.REMOVED_FROM_ROOM, removedMsg);
+    }
     if (token) {
       if ([...room.removedTokens].some((removed) => tokensMatch(removed, token))) {
-        throw new AppError(ErrorCodes.REMOVED_FROM_ROOM, 'You were removed from this room by the host.');
+        throw new AppError(ErrorCodes.REMOVED_FROM_ROOM, removedMsg);
       }
       const existing = [...room.participants.values()].find((p) => tokensMatch(p.token, token));
-      if (existing) return this.#reattach(room, existing, socketId);
+      // The token must belong to the same account that owns the seat.
+      if (existing && (!userId || !existing.userId || existing.userId === userId)) {
+        return this.#reattach(room, existing, socketId);
+      }
+    }
+    // Same account, same seat: works across devices/browsers without a token.
+    if (userId) {
+      const owned = [...room.participants.values()].find((p) => p.userId === userId);
+      if (owned) return this.#reattach(room, owned, socketId);
     }
 
     // Same live socket asking twice must not create a second seat.
@@ -76,8 +94,8 @@ export class RoomService extends EventEmitter {
     if (room.participants.size >= this.config.limits.maxParticipantsPerRoom) {
       throw new AppError(ErrorCodes.ROOM_FULL, 'This room is full.');
     }
-    const name = sanitizeDisplayName(displayName, this.config.limits.maxDisplayNameLength);
-    const participant = this.#addParticipant(room, name, Roles.PARTICIPANT, socketId);
+    const name = sanitizeDisplayName(user?.username ?? displayName, this.config.limits.maxDisplayNameLength);
+    const participant = this.#addParticipant(room, name, Roles.PARTICIPANT, socketId, userId);
     return { room, participant, rejoined: false, displacedSocketId: null };
   }
 
@@ -195,6 +213,7 @@ export class RoomService extends EventEmitter {
       throw new AppError(ErrorCodes.INVALID_TARGET, 'The host cannot be removed.');
     }
     room.removedTokens.add(target.token);
+    if (target.userId) room.removedUserIds.add(target.userId);
     this.#clearGraceTimer(room.id, target.id);
     room.participants.delete(target.id);
     return { room, actor, target };
@@ -358,9 +377,10 @@ export class RoomService extends EventEmitter {
     return target;
   }
 
-  #addParticipant(room, name, role, socketId) {
+  #addParticipant(room, name, role, socketId, userId = null) {
     const participant = new Participant({
       id: newParticipantId(),
+      userId,
       name,
       role,
       token: newReconnectToken(),

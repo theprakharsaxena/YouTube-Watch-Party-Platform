@@ -8,6 +8,14 @@ export function getSocket() {
   if (!socket) {
     socket = io(SERVER_URL || undefined, {
       autoConnect: false,
+      auth: (cb) => {
+        try {
+          const token = localStorage.getItem('sidelight_auth_token');
+          cb({ token: token || undefined });
+        } catch {
+          cb({});
+        }
+      },
       transports: ['websocket', 'polling'],
       reconnectionDelayMax: 5000,
     });

@@ -11,6 +11,7 @@ export class Room {
     hostId = null,
     participants = new Map(),
     removedTokens = new Set(),
+    removedUserIds = new Set(),
     playback = null,
     chatMessages = [],
   }) {
@@ -19,6 +20,7 @@ export class Room {
     this.hostId = hostId;
     this.participants = participants instanceof Map ? participants : new Map();
     this.removedTokens = removedTokens instanceof Set ? removedTokens : new Set(removedTokens);
+    this.removedUserIds = removedUserIds instanceof Set ? removedUserIds : new Set(removedUserIds);
     this.playback = playback || {
       videoId: null,
       status: 'paused',
@@ -190,6 +192,7 @@ export class Room {
       hostId: this.hostId,
       participants: Array.from(this.participants.values()).map((p) => p.toJSON()),
       removedTokens: Array.from(this.removedTokens),
+      removedUserIds: Array.from(this.removedUserIds),
       playback: this.playback,
       chatMessages: this.chatMessages,
       pendingRequests: this.listPendingRequests(),
@@ -210,6 +213,7 @@ export class Room {
       hostId: data.hostId,
       participants,
       removedTokens: new Set(data.removedTokens || []),
+      removedUserIds: new Set(data.removedUserIds || []),
       playback: data.playback,
       chatMessages: data.chatMessages || [],
     });

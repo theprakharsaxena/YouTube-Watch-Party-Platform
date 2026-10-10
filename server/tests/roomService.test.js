@@ -15,7 +15,7 @@ describe('RoomService', () => {
 
   beforeEach(() => {
     clock = 1_000_000;
-    service = new RoomService({ config: loadConfig({}), now: () => clock });
+    service = new RoomService({ config: loadConfig({ REQUIRE_AUTH: 'false' }), now: () => clock });
     ({ room, participant: host } = service.createRoom({
       displayName: 'Hana',
       videoInput: `https://youtu.be/${VIDEO}`,
@@ -218,7 +218,7 @@ describe('RoomService', () => {
   });
 
   test('disconnected participants are removed after the grace period', async () => {
-    const quick = new RoomService({ config: loadConfig({ RECONNECT_GRACE_MS: '20' }) });
+    const quick = new RoomService({ config: loadConfig({ RECONNECT_GRACE_MS: '20', REQUIRE_AUTH: 'false' }) });
     const { room: r, participant: h } = quick.createRoom({ displayName: 'H', socketId: 'a' });
     const g = quick.joinRoom({ roomId: r.id, displayName: 'G', socketId: 'b' }).participant;
     quick.handleDisconnect({ roomId: r.id, participantId: g.id, socketId: 'b' });

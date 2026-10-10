@@ -13,7 +13,7 @@ describe('socket integration', () => {
   const sockets = [];
 
   before(async () => {
-    server = createServer(loadConfig({ RECONNECT_GRACE_MS: '5000' }));
+    server = createServer(loadConfig({ RECONNECT_GRACE_MS: '5000', REQUIRE_AUTH: 'false' }));
     await new Promise((resolve) => server.httpServer.listen(0, resolve));
     url = `http://localhost:${server.httpServer.address().port}`;
   });

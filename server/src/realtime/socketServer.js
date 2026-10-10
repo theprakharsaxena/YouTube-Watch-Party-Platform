@@ -16,7 +16,7 @@ export const roomChannel = (roomId) => `room:${roomId}`;
  * association used to identify who is acting: handlers NEVER read a participant
  * id or role from the event payload to decide who the caller is.
  */
-export function createSocketServer(httpServer, { roomService, config }) {
+export function createSocketServer(httpServer, { roomService, config, authService = null }) {
   const io = new Server(httpServer, {
     cors: { origin: config.clientOrigins, methods: ['GET', 'POST'] },
     maxHttpBufferSize: 1e5, // 100 KB is plenty for our tiny payloads
@@ -27,6 +27,23 @@ export function createSocketServer(httpServer, { roomService, config }) {
 
   // Attach Redis adapter if REDIS_URL is configured for multi-server cluster
   setupRedisAdapter(io, { redisUrl: config.redisUrl || process.env.REDIS_URL });
+
+  // Handshake auth: the token proves who is connecting. The verified user is stored on
+  // socket.data and is the only source of identity for create/join (names, host rights, bans).
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    const user = authService?.verifyToken(typeof token === 'string' ? token : null) ?? null;
+    if (user) {
+      socket.data.user = user;
+      return next();
+    }
+    if (config.auth?.required) {
+      const error = new Error(ErrorCodes.UNAUTHORIZED);
+      error.data = { code: ErrorCodes.UNAUTHORIZED, message: 'Sign in to continue.' };
+      return next(error);
+    }
+    return next();
+  });
 
   io.on('connection', (socket) => {
     const allow = createRateLimiter(config.rateLimit);

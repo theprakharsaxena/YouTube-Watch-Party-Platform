@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { getSocket } from '../services/socket.js';
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'sidelight_auth_token';
@@ -22,6 +23,11 @@ export function AuthProvider({ children }) {
     else localStorage.removeItem(TOKEN_KEY);
     if (userVal) localStorage.setItem(USER_KEY, JSON.stringify(userVal));
     else localStorage.removeItem(USER_KEY);
+    try {
+      getSocket().auth = { token: tokenVal || undefined };
+    } catch {
+      /* socket not initialized yet */
+    }
   };
 
   const login = async ({ username, password }) => {

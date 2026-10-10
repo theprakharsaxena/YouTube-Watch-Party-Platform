@@ -5,9 +5,10 @@ import { RoomService } from './rooms/roomService.js';
 import { PersistentRoomStore } from './rooms/persistentRoomStore.js';
 import { SqliteRoomStore } from './rooms/sqliteRoomStore.js';
 import { createSocketServer } from './realtime/socketServer.js';
+import { AuthService } from './auth/authService.js';
 
 /** Build the whole stack without listening, so tests can choose their own port. */
-export function createServer(config = loadConfig(), { store } = {}) {
+export function createServer(config = loadConfig(), { store, authService: injectedAuth } = {}) {
   const roomStore =
     store ??
     (process.env.PERSISTENCE === 'false'
@@ -16,10 +17,11 @@ export function createServer(config = loadConfig(), { store } = {}) {
         ? new SqliteRoomStore()
         : new PersistentRoomStore());
   const roomService = new RoomService({ config, store: roomStore });
-  const app = createApp({ config, roomService });
+  const authService = injectedAuth ?? new AuthService();
+  const app = createApp({ config, roomService, authService });
   const httpServer = http.createServer(app);
-  const io = createSocketServer(httpServer, { roomService, config });
-  return { httpServer, io, roomService, config };
+  const io = createSocketServer(httpServer, { roomService, config, authService });
+  return { httpServer, io, roomService, authService, config };
 }
 
 const isEntrypoint = import.meta.url === `file://${process.argv[1]}`;

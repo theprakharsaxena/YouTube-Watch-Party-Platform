@@ -13,8 +13,10 @@ export class Participant {
     token = newReconnectToken(),
     connected = true,
     joinedAt = Date.now(),
+    userId = null,
   }) {
     this.id = id;
+    this.userId = userId; // authenticated account that owns this seat (null when auth is disabled)
     this.name = name;
     this.role = role;
     this.socketId = socketId;
@@ -64,6 +66,7 @@ export class Participant {
   toJSON() {
     return {
       id: this.id,
+      userId: this.userId,
       name: this.name,
       role: this.role,
       socketId: null, // Sockets are ephemeral across restarts
@@ -77,6 +80,7 @@ export class Participant {
   static fromJSON(data) {
     return new Participant({
       id: data.id,
+      userId: data.userId ?? null,
       name: data.name,
       role: data.role,
       socketId: null,

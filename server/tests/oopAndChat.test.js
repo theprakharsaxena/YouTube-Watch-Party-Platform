@@ -18,7 +18,7 @@ describe('OOP Classes & Chat / Reactions', () => {
 
   beforeEach(() => {
     clock = 1_000_000;
-    service = new RoomService({ config: loadConfig({}), now: () => clock });
+    service = new RoomService({ config: loadConfig({ REQUIRE_AUTH: 'false' }), now: () => clock });
     ({ room, participant: host } = service.createRoom({
       displayName: 'Alice',
       videoInput: 'https://youtu.be/dQw4w9WgXcQ',
