@@ -134,10 +134,6 @@ export class AuthService {
       throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'An account with this email already exists.');
     }
 
-    if (this.isRegisteredDisplayName(cleanName)) {
-      throw new AppError(ErrorCodes.INVALID_NAME, 'That display name is already taken.');
-    }
-
     const salt = randomBytes(16).toString('hex');
     const hash = this.#hashPassword(password, salt);
     const id = 'u_' + randomBytes(8).toString('hex');

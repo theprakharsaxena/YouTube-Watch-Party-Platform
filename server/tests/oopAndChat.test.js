@@ -114,6 +114,17 @@ describe('OOP Classes & Chat / Reactions', () => {
     const verified = auth.verifyToken(login.token);
     assert.equal(verified.email, 'prakhar@example.com');
     assert.equal(verified.displayName, 'Prakhar Saxena');
+
+    // Multiple accounts can share the exact same display name, uniquely identified by email
+    const reg2 = auth.register({ email: 'another@example.com', displayName: 'Prakhar Saxena', password: 'secretpassword456' });
+    assert.equal(reg2.user.displayName, 'Prakhar Saxena');
+    assert.equal(reg2.user.email, 'another@example.com');
+    assert.notEqual(reg2.user.id, reg.user.id);
+
+    // Duplicate email is rejected
+    assert.throws(() => auth.register({ email: 'prakhar@example.com', displayName: 'Anyone', password: 'password123' }), {
+      code: 'INVALID_PAYLOAD',
+    });
   });
 
   test('PersistentRoomStore and SqliteRoomStore serialize and restore rooms', () => {

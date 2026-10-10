@@ -98,14 +98,6 @@ export class RoomService extends EventEmitter {
 
     const isRegistered = Boolean(user && !user.isGuest);
 
-    // Prevent unauthenticated guests from claiming registered display names:
-    if (!isRegistered && displayName && (this.authService?.isRegisteredDisplayName?.(displayName) || this.authService?.isRegisteredUsername?.(displayName))) {
-      throw new AppError(
-        ErrorCodes.INVALID_NAME,
-        `"${displayName}" is a registered account display name. Please log in to join as this user, or choose another name to join as Viewer.`
-      );
-    }
-
     // Role assignment:
     // Logged in users join as PARTICIPANT.
     // Unlogged-in users (guests) join as VIEWER.
