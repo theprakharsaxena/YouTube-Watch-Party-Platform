@@ -44,6 +44,7 @@ export class ChatMessageHandler extends BaseMessageHandler {
           state: this.roomService.snapshot(room),
           action: actionResult.action,
           by: { id: actor.id, name: actor.name, role: actor.role },
+          isRequestApproval: true,
         });
       }
 
@@ -53,6 +54,7 @@ export class ChatMessageHandler extends BaseMessageHandler {
         approved,
         request,
         by: { id: actor.id, name: actor.name, role: actor.role },
+        resolvedBy: { id: actor.id, name: actor.name, role: actor.role },
       });
     });
   }

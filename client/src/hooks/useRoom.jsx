@@ -125,15 +125,30 @@ export function RoomProvider({ children }) {
       change_requested: ({ state, request, by }) => {
         applyState(state);
         setPendingRequests((prev) => [...prev.filter((r) => r.id !== request.id), request]);
-        toast.info(`${by.name} requested to change the video.`);
+        const currentMyId = myId();
+        // Do not notify the requester (they already saw the submission confirmation toast)
+        if (by?.id === currentMyId) return;
+
+        // Only display to hosts and moderators who can act on the request
+        const myRole = state.participants?.find((p) => p.id === currentMyId)?.role;
+        if (myRole === 'host' || myRole === 'moderator') {
+          toast.info(`${by.name} requested to change the video.`);
+        }
       },
-      change_request_resolved: ({ state, requestId, approved, resolvedBy }) => {
+      change_request_resolved: ({ state, requestId, approved, resolvedBy, by, request }) => {
         applyState(state);
         setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+        const resolver = resolvedBy || by;
+        const currentMyId = myId();
+
+        // If I was the host/moderator who approved or declined the request, don't toast myself
+        if (resolver?.id === currentMyId) return;
+
         if (approved) {
-          toast.success(`${resolvedBy.name} approved the video change request.`);
+          toast.success(`${resolver?.name || 'The host'} approved the video change request.`);
         } else {
-          toast.info(`The video change request was declined.`);
+          const isRequester = request?.requesterId === currentMyId;
+          toast.info(isRequester ? 'Your video change request was declined.' : 'The video change request was declined.');
         }
       },
       participant_joined: ({ state, participant }) => {
@@ -168,7 +183,7 @@ export function RoomProvider({ children }) {
       },
       playback_updated: (data) => {
         applyState(data.state);
-        if (data.action?.type === 'change_video' && data.by.id !== myId()) {
+        if (data.action?.type === 'change_video' && data.by?.id !== myId() && !data.isRequestApproval) {
           toast.info(`${data.by.name} changed the video.`);
         }
         settle('playback_updated');
