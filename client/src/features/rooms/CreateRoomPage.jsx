@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clapperboard, LogIn } from 'lucide-react';
+import { Clapperboard, LogIn, UserCheck } from 'lucide-react';
 import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
@@ -15,7 +15,7 @@ export default function CreateRoomPage() {
   const navigate = useNavigate();
   const { createRoom } = useRoom();
   const { user, isAuthenticated } = useAuth();
-  const [name, setName] = useState(user?.username || '');
+  const [name, setName] = useState(user?.displayName || '');
   const [videoUrl, setVideoUrl] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
@@ -23,14 +23,18 @@ export default function CreateRoomPage() {
   const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.username) {
-      setName(user.username);
+    if (user?.displayName) {
+      setName(user.displayName);
     }
   }, [user]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const nextErrors = { name: validateDisplayName(name), video: validateVideoInput(videoUrl) };
+    const effectiveName = isAuthenticated ? user?.displayName || '' : name.trim();
+    const nextErrors = {
+      name: isAuthenticated ? undefined : validateDisplayName(effectiveName),
+      video: validateVideoInput(videoUrl),
+    };
     setErrors(nextErrors);
     setSubmitError('');
     if (nextErrors.name || nextErrors.video) return;
@@ -43,7 +47,7 @@ export default function CreateRoomPage() {
 
     setBusy(true);
     try {
-      const { roomId } = await createRoom({ displayName: name.trim(), videoUrl: videoUrl.trim() });
+      const { roomId } = await createRoom({ displayName: effectiveName, videoUrl: videoUrl.trim() });
       navigate(`/r/${formatRoomCode(roomId)}`, { replace: true });
     } catch (error) {
       const isAuthError = error.code === 'UNAUTHORIZED' || error.code === 'ACCOUNT_REQUIRED';
@@ -62,7 +66,25 @@ export default function CreateRoomPage() {
         lead="You'll be the host. Share the link afterwards and everyone lands in the same room."
       >
         <form onSubmit={handleSubmit} noValidate className="form-stack">
-          {!isAuthenticated && (
+          {isAuthenticated ? (
+            <div
+              className="form-alert"
+              style={{
+                background: 'rgba(144, 205, 171, 0.1)',
+                borderColor: 'rgba(144, 205, 171, 0.35)',
+                color: 'var(--sage)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.9rem',
+              }}
+            >
+              <UserCheck size={16} aria-hidden="true" />
+              <span>
+                Hosting as <strong>{user?.displayName}</strong>
+              </span>
+            </div>
+          ) : (
             <div
               className="form-alert"
               style={{
@@ -85,13 +107,20 @@ export default function CreateRoomPage() {
           )}
           <Field
             label="Your display name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={errors.name}
+            value={isAuthenticated ? user?.displayName || '' : name}
+            onChange={!isAuthenticated ? (e) => setName(e.target.value) : undefined}
+            disabled={isAuthenticated}
+            readOnly={isAuthenticated}
+            error={!isAuthenticated ? errors.name : undefined}
+            hint={
+              isAuthenticated
+                ? 'Your account display name is used as your host display name.'
+                : undefined
+            }
             maxLength={DISPLAY_NAME_MAX + 20}
-            autoComplete="nickname"
-            autoFocus
-            placeholder="e.g. Hana"
+            autoComplete="name"
+            autoFocus={!isAuthenticated}
+            placeholder="e.g. Hana Montana"
           />
           <Field
             label="YouTube link"
@@ -102,6 +131,7 @@ export default function CreateRoomPage() {
             hint="You can also pick a video once you're inside the room."
             inputMode="url"
             autoComplete="off"
+            autoFocus={isAuthenticated}
             placeholder="https://www.youtube.com/watch?v=…"
           />
           {submitError && (

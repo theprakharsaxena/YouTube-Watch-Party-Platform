@@ -53,7 +53,7 @@ export default function RoomPage() {
   const { user, token, isAuthenticated, guestLogin } = useAuth();
 
   const [lookup, setLookup] = useState({ status: 'checking' });
-  const [name, setName] = useState(user?.username || '');
+  const [name, setName] = useState(user?.displayName || '');
   const [nameError, setNameError] = useState('');
   const [joining, setJoining] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -62,8 +62,8 @@ export default function RoomPage() {
   const isInRoom = phase === 'joined' && activeRoomId === code;
 
   useEffect(() => {
-    if (user?.username) {
-      setName(user.username);
+    if (user?.displayName) {
+      setName(user.displayName);
     }
   }, [user]);
 
@@ -140,7 +140,7 @@ export default function RoomPage() {
     }
     setJoining(true);
     try {
-      await joinRoom({ roomId: code, displayName: user.username });
+      await joinRoom({ roomId: code, displayName: user.displayName });
     } catch (error) {
       setNameError(error.message);
       setJoining(false);
@@ -189,7 +189,7 @@ export default function RoomPage() {
             >
               <UserCheck size={16} aria-hidden="true" />
               <span>
-                Logged in as <strong>{user?.username}</strong> (Participant)
+                Logged in as <strong>{user?.displayName}</strong> (Participant)
               </span>
             </div>
             {nameError && (

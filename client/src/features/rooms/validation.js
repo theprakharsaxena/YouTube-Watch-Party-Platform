@@ -1,4 +1,4 @@
-export const DISPLAY_NAME_MAX = 24;
+export const DISPLAY_NAME_MAX = 32;
 
 /** Returns an error message, or '' when valid. Server re-validates independently. */
 export function validateDisplayName(value) {

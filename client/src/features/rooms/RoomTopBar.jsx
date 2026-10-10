@@ -48,9 +48,9 @@ export default function RoomTopBar({ roomId, connection, participantCount, copie
       <ConnectionBadge status={connection} />
       <div className="topbar__spacer" />
       {user && !user.isGuest ? (
-        <span className="topbar__user" title={`Logged in as ${user.username}`} style={{ fontSize: '0.85rem', color: 'var(--amber)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span className="topbar__user" title={`Logged in as ${user.displayName}`} style={{ fontSize: '0.85rem', color: 'var(--amber)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <User size={14} aria-hidden="true" />
-          <span>{user.username}</span>
+          <span>{user.displayName}</span>
         </span>
       ) : (
         <button type="button" className="btn btn--ghost btn--sm" onClick={() => setAuthOpen(true)}>

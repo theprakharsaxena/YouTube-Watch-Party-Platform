@@ -41,7 +41,7 @@ describe('socket authentication', () => {
         resolve(data);
       });
     });
-  const registered = (name) => auth.register({ username: name, password: 'secret12' });
+  const registered = (name) => auth.register({ email: `${name.replace(/\s+/g, '_')}@test.com`, displayName: name, password: 'secret12' });
 
   test('connection without a valid token is rejected', async () => {
     const anon = client(undefined);

@@ -45,7 +45,7 @@ export default function LandingPage() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.875rem', color: 'var(--amber)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <User size={14} aria-hidden="true" />
-                <span>{user.username}</span>
+                <span>{user.displayName}</span>
               </span>
               <button type="button" className="btn btn--ghost btn--sm" onClick={logout}>
                 Log out

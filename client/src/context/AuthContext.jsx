@@ -10,7 +10,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Clean out legacy username-only records
+      if (parsed && !parsed.displayName && parsed.username) {
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -65,11 +73,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async ({ username, password }) => {
+  const login = async ({ email, password }) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Login failed');
@@ -77,11 +85,11 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const register = async ({ username, password }) => {
+  const register = async ({ email, password, displayName }) => {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password, displayName }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Registration failed');

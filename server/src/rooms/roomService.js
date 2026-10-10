@@ -41,7 +41,7 @@ export class RoomService extends EventEmitter {
       throw new AppError(ErrorCodes.ACCOUNT_REQUIRED, 'Create an account or log in to host a room. Guests can join rooms.');
     }
     // With auth on, the name comes from the verified account, never from the payload.
-    const name = sanitizeDisplayName(user?.username ?? displayName, this.config.limits.maxDisplayNameLength);
+    const name = sanitizeDisplayName(user?.displayName ?? displayName, this.config.limits.maxDisplayNameLength);
     const videoId = parseOptionalVideo(videoInput);
 
     const room = new Room({
@@ -98,11 +98,11 @@ export class RoomService extends EventEmitter {
 
     const isRegistered = Boolean(user && !user.isGuest);
 
-    // Prevent unauthenticated guests from claiming registered usernames:
-    if (!isRegistered && displayName && this.authService?.isRegisteredUsername?.(displayName)) {
+    // Prevent unauthenticated guests from claiming registered display names:
+    if (!isRegistered && displayName && (this.authService?.isRegisteredDisplayName?.(displayName) || this.authService?.isRegisteredUsername?.(displayName))) {
       throw new AppError(
         ErrorCodes.INVALID_NAME,
-        `"${displayName}" is a registered account. Please log in to join as this user, or choose another name to join as Viewer.`
+        `"${displayName}" is a registered account display name. Please log in to join as this user, or choose another name to join as Viewer.`
       );
     }
 
@@ -110,7 +110,7 @@ export class RoomService extends EventEmitter {
     // Logged in users join as PARTICIPANT.
     // Unlogged-in users (guests) join as VIEWER.
     const role = (!this.config.auth?.required || isRegistered) ? Roles.PARTICIPANT : Roles.VIEWER;
-    const name = sanitizeDisplayName(user?.username ?? displayName, this.config.limits.maxDisplayNameLength);
+    const name = sanitizeDisplayName(user?.displayName ?? displayName, this.config.limits.maxDisplayNameLength);
     const participant = this.#addParticipant(room, name, role, socketId, userId);
     return { room, participant, rejoined: false, displacedSocketId: null };
   }

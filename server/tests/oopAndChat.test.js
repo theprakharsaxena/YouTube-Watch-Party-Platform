@@ -100,17 +100,20 @@ describe('OOP Classes & Chat / Reactions', () => {
 
   test('AuthService registers, logs in, hashes password and verifies token', () => {
     const auth = new AuthService({ filePath: `/tmp/test_users_${Date.now()}_${Math.random()}.json` });
-    const reg = auth.register({ username: 'prakhar', password: 'secretpassword123' });
-    assert.equal(reg.user.username, 'prakhar');
+    const reg = auth.register({ email: 'prakhar@example.com', displayName: 'Prakhar Saxena', password: 'secretpassword123' });
+    assert.equal(reg.user.email, 'prakhar@example.com');
+    assert.equal(reg.user.displayName, 'Prakhar Saxena');
     assert.ok(reg.token);
 
-    const login = auth.login({ username: 'prakhar', password: 'secretpassword123' });
-    assert.equal(login.user.username, 'prakhar');
+    const login = auth.login({ email: 'prakhar@example.com', password: 'secretpassword123' });
+    assert.equal(login.user.email, 'prakhar@example.com');
+    assert.equal(login.user.displayName, 'Prakhar Saxena');
 
-    assert.throws(() => auth.login({ username: 'prakhar', password: 'wrong' }), { code: 'NOT_IN_ROOM' });
+    assert.throws(() => auth.login({ email: 'prakhar@example.com', password: 'wrong' }), { code: 'NOT_IN_ROOM' });
 
     const verified = auth.verifyToken(login.token);
-    assert.equal(verified.username, 'prakhar');
+    assert.equal(verified.email, 'prakhar@example.com');
+    assert.equal(verified.displayName, 'Prakhar Saxena');
   });
 
   test('PersistentRoomStore and SqliteRoomStore serialize and restore rooms', () => {

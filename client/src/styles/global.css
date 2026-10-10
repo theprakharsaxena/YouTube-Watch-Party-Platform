@@ -90,6 +90,21 @@ button, input { font: inherit; color: inherit; }
 .input:focus-visible { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px rgba(242, 166, 90, 0.25); }
 .field--invalid .field__input,
 .field--invalid .input { border-color: var(--danger); }
+.field__input:disabled,
+.field__input[readonly],
+.input:disabled,
+.input[readonly] {
+  opacity: 0.75;
+  cursor: not-allowed;
+  background: var(--ink-900);
+  border-color: var(--line);
+}
+.field__input:disabled:hover,
+.field__input[readonly]:hover,
+.input:disabled:hover,
+.input[readonly]:hover {
+  border-color: var(--line);
+}
 .field__hint { font-size: 0.82rem; color: var(--ivory-mute); }
 .field__error { font-size: 0.85rem; color: var(--danger); }
 .form-alert { padding: 10px 14px; border-radius: var(--radius-md); background: var(--danger-bg); color: var(--danger); font-size: 0.9rem; border: 1px solid rgba(239, 123, 106, 0.3); }

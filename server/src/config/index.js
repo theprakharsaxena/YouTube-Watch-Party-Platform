@@ -11,7 +11,7 @@ export function loadConfig(env = process.env) {
       .map((origin) => origin.trim().replace(/\/$/, ''))
       .filter(Boolean),
     limits: {
-      maxDisplayNameLength: 24,
+      maxDisplayNameLength: 32,
       maxParticipantsPerRoom: 30,
       maxSeekSeconds: 60 * 60 * 24, // 24h sanity cap; YouTube duration is not known server-side
       // How long a disconnected participant keeps their seat (and role) for a reconnect.

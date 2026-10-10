@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Lock, LogIn, User, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Lock, LogIn, Mail, User, UserPlus } from 'lucide-react';
 import Dialog from './Dialog.jsx';
 import Button from './Button.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -7,7 +7,8 @@ import { useToast } from './Toast.jsx';
 
 export default function AuthDialog({ open, onClose, onAuthSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,15 +17,17 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !password) return;
+    if (!email.trim() || !password) return;
+    if (mode === 'register' && !displayName.trim()) return;
+
     setLoading(true);
     try {
       if (mode === 'login') {
-        const u = await login({ username, password });
-        toast.success(`Welcome back, ${u.username}!`);
+        const u = await login({ email: email.trim(), password });
+        toast.success(`Welcome back, ${u.displayName}!`);
       } else {
-        const u = await register({ username, password });
-        toast.success(`Account created! Welcome, ${u.username}!`);
+        const u = await register({ email: email.trim(), password, displayName: displayName.trim() });
+        toast.success(`Account created! Welcome, ${u.displayName}!`);
       }
       onClose();
       onAuthSuccess?.();
@@ -40,7 +43,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
       open={open}
       onClose={onClose}
       title={mode === 'login' ? 'Log in to Sidelight' : 'Create an Account'}
-      description="Save your watch party identity and sign in before joining rooms."
+      description="Save your watch party identity and sign in before hosting or joining rooms."
       labelledBy="auth-dialog-title"
     >
       <div className="auth-tabs" role="tablist" aria-label="Authentication mode">
@@ -65,21 +68,40 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
       </div>
 
       <form onSubmit={handleSubmit} className="form-stack auth-form">
+        {mode === 'register' && (
+          <label className="field">
+            <span className="field__label">Display Name</span>
+            <div className="auth-input-box">
+              <User size={18} className="auth-input-icon" aria-hidden="true" />
+              <input
+                type="text"
+                name="displayName"
+                autoComplete="name"
+                placeholder="e.g. Hana Montana"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+                minLength={2}
+                maxLength={32}
+                autoFocus
+              />
+            </div>
+          </label>
+        )}
+
         <label className="field">
-          <span className="field__label">Username</span>
+          <span className="field__label">Email</span>
           <div className="auth-input-box">
-            <User size={18} className="auth-input-icon" aria-hidden="true" />
+            <Mail size={18} className="auth-input-icon" aria-hidden="true" />
             <input
-              type="text"
-              name="username"
-              autoComplete="username"
-              placeholder="e.g. hana_123"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              name="email"
+              autoComplete="email"
+              placeholder="e.g. hana@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              minLength={3}
-              maxLength={24}
-              autoFocus
+              autoFocus={mode === 'login'}
             />
           </div>
         </label>
