@@ -791,6 +791,8 @@ main {
   display: flex;
   align-items: center;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
 }
 
 .scrubber__track {
@@ -802,7 +804,8 @@ main {
   transition: height var(--t-fast) var(--ease);
 }
 
-.scrubber--interactive:hover .scrubber__track {
+.scrubber--interactive:hover .scrubber__track,
+.scrubber--dragging .scrubber__track {
   height: 6px;
 }
 
@@ -830,9 +833,10 @@ main {
   pointer-events: none;
 }
 
-.scrubber--interactive:hover .scrubber__thumb {
+.scrubber--interactive:hover .scrubber__thumb,
+.scrubber--dragging .scrubber__thumb {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1.2);
+  transform: translate(-50%, -50%) scale(1.25);
 }
 
 .preview__time-display {

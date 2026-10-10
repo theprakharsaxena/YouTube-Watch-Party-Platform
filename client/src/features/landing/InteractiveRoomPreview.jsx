@@ -49,10 +49,16 @@ export default function InteractiveRoomPreview() {
   const [cheerNotice, setCheerNotice] = useState(null);
   const [activeParticipantIndex, setActiveParticipantIndex] = useState(null);
 
-  // Video URL Input Drawer
   const [showUrlDrawer, setShowUrlDrawer] = useState(false);
   const [inputUrl, setInputUrl] = useState('');
   const [urlError, setUrlError] = useState('');
+
+  // Drag-and-drop Scrubber states & refs
+  const [scrubTime, setScrubTime] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const scrubberRef = useRef(null);
+  const lastDragSeekRef = useRef(0);
 
   // 3D Tilt refs & states
   const windowRef = useRef(null);
@@ -141,6 +147,7 @@ export default function InteractiveRoomPreview() {
   useEffect(() => {
     if (!isPlaying) return undefined;
     const interval = setInterval(() => {
+      if (isDraggingRef.current) return;
       const controller = controllerRef.current;
       if (controller?.ready) {
         const cur = controller.getCurrentTime();
@@ -276,9 +283,9 @@ export default function InteractiveRoomPreview() {
     return () => cancelAnimationFrame(animId);
   }, [isPlaying]);
 
-  // 3D Card Tilt on Mouse Move
+  // 3D Card Tilt on Mouse Move (disabled while dragging scrubber for stable control)
   const handleMouseMove = (e) => {
-    if (!windowRef.current) return;
+    if (!windowRef.current || isDraggingRef.current) return;
     const rect = windowRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -294,7 +301,7 @@ export default function InteractiveRoomPreview() {
   };
 
   const handleMouseLeave = () => {
-    if (!windowRef.current) return;
+    if (!windowRef.current || isDraggingRef.current) return;
     windowRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
   };
 
@@ -325,16 +332,63 @@ export default function InteractiveRoomPreview() {
     spawnReaction(randomEmoji, xPercent);
   };
 
-  // Interactive scrubber seek on real player
-  const handleScrubberClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+  // Calculate time corresponding to pointer X coordinates on scrubber
+  const getTimeFromPointer = useCallback((e) => {
+    const scrubber = scrubberRef.current;
+    if (!scrubber || totalDuration <= 0) return 0;
+    const rect = scrubber.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-    const newTime = Math.floor(percentage * totalDuration);
-    setCurrentTime(newTime);
-    controllerRef.current?.seekTo(newTime);
-    setSyncMessage(`Seeked to ${formatTime(newTime)}`);
-    setTimeout(() => setSyncMessage('In step with the room'), 1500);
+    return Math.round(percentage * totalDuration);
+  }, [totalDuration]);
+
+  // Interactive drag-and-drop scrubber seek with live frame preview
+  const handleScrubberPointerDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isDraggingRef.current = true;
+    setIsDragging(true);
+
+    const initialTime = getTimeFromPointer(e);
+    setScrubTime(initialTime);
+    controllerRef.current?.seekTo(initialTime);
+    lastDragSeekRef.current = Date.now();
+
+    const onPointerMove = (moveEvent) => {
+      if (!isDraggingRef.current) return;
+      const moveTime = getTimeFromPointer(moveEvent);
+      setScrubTime(moveTime);
+
+      // Throttle preview seeks during active dragging so the video frame renders smoothly (every ~50ms)
+      const now = Date.now();
+      if (now - lastDragSeekRef.current > 50) {
+        lastDragSeekRef.current = now;
+        controllerRef.current?.seekTo(moveTime);
+      }
+    };
+
+    const onPointerUp = (upEvent) => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+
+      const finalTime = getTimeFromPointer(upEvent);
+      setScrubTime(null);
+      setCurrentTime(finalTime);
+      controllerRef.current?.seekTo(finalTime);
+
+      setSyncMessage(`Seeked to ${formatTime(finalTime)} · Synced`);
+      setTimeout(() => setSyncMessage('In step with the room'), 1500);
+      spawnReaction('✨', 50);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
   // Simulate real-time sync wave
@@ -344,7 +398,7 @@ export default function InteractiveRoomPreview() {
 
     if (controllerRef.current && isPlaying) {
       const cur = controllerRef.current.getCurrentTime();
-      controllerRef.current.seekTo(cur + 1.2);
+      controllerRef.current?.seekTo(cur + 1.2);
     }
 
     setTimeout(() => {
@@ -365,7 +419,8 @@ export default function InteractiveRoomPreview() {
     setTimeout(() => setCheerNotice(null), 1800);
   };
 
-  const progressPercent = totalDuration > 0 ? ((currentTime / totalDuration) * 100).toFixed(1) : '0.0';
+  const displayTime = scrubTime ?? currentTime;
+  const progressPercent = totalDuration > 0 ? ((displayTime / totalDuration) * 100).toFixed(1) : '0.0';
 
   return (
     <figure className="preview" aria-label="Interactive demonstration of a Sidelight watch room">
@@ -529,14 +584,15 @@ export default function InteractiveRoomPreview() {
                 {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               </button>
 
-              {/* Interactive Scrubbing Bar */}
+              {/* Interactive Scrubbing Bar with Drag-and-Drop */}
               <div
-                className="scrubber scrubber--interactive"
-                onClick={handleScrubberClick}
+                ref={scrubberRef}
+                className={`scrubber scrubber--interactive ${isDragging ? 'scrubber--dragging' : ''}`}
+                onPointerDown={handleScrubberPointerDown}
                 style={{ '--progress': `${progressPercent}%` }}
-                title="Click anywhere to scrub playback position in real YouTube video"
+                title="Drag or click anywhere to scrub playback position in real YouTube video"
                 role="slider"
-                aria-valuenow={currentTime}
+                aria-valuenow={displayTime}
                 aria-valuemin={0}
                 aria-valuemax={totalDuration}
                 aria-label="Seek time"
@@ -549,7 +605,7 @@ export default function InteractiveRoomPreview() {
 
               {/* Time display */}
               <span className="preview__time-display">
-                {formatTime(currentTime)} / {formatTime(totalDuration)}
+                {formatTime(displayTime)} / {formatTime(totalDuration)}
               </span>
 
               {/* Custom sound on/off toggle */}
