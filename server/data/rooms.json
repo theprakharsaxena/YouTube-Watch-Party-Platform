@@ -1141,5 +1141,32 @@
     },
     "chatMessages": [],
     "pendingRequests": []
+  },
+  {
+    "id": "S52SW2K7EY",
+    "createdAt": 1791635575398,
+    "hostId": "0bbdd884",
+    "participants": [
+      {
+        "id": "0bbdd884",
+        "name": "erf",
+        "role": "host",
+        "socketId": null,
+        "token": "1zcXpERRnnLJo6veaDQoa2arlGFS8rfK",
+        "connected": false,
+        "joinedAt": 1791635575398,
+        "updatedAt": 1791635575398
+      }
+    ],
+    "removedTokens": [],
+    "playback": {
+      "videoId": "rC-kbRanJQ0",
+      "status": "paused",
+      "position": 0,
+      "updatedAt": 1791635575398,
+      "revision": 0
+    },
+    "chatMessages": [],
+    "pendingRequests": []
   }
 ]

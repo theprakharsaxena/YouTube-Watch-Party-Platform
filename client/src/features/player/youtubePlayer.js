@@ -89,9 +89,10 @@ export class YouTubePlayerController {
    * @param {HTMLElement} host  container that the API will fill with an iframe
    * @param {{onReady?:Function,onStateChange?:Function,onError?:Function,onLoadFailed?:Function}} handlers
    */
-  constructor(host, handlers = {}) {
+  constructor(host, handlers = {}, options = {}) {
     this.host = host;
     this.handlers = handlers;
+    this.options = options;
   }
 
   async init(videoId = undefined) {
@@ -123,6 +124,7 @@ export class YouTubePlayerController {
         iv_load_policy: 3,
         fs: 0,
         origin: window.location.origin,
+        ...(this.options?.playerVars || {}),
       },
       events: {
         onReady: () => {
