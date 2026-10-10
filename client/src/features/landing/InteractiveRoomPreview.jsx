@@ -465,10 +465,7 @@ export default function InteractiveRoomPreview() {
               <span className="preview__glow" />
 
               {/* Actual YouTube Player Mount */}
-              <div
-                className={`preview__player-wrap ${!isPlaying ? 'preview__player-wrap--paused' : ''}`}
-                style={{ '--poster': `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)` }}
-              >
+              <div className="preview__player-wrap">
                 <div ref={playerHostRef} className="preview__player-host" />
               </div>
 

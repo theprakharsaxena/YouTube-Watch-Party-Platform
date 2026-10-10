@@ -280,6 +280,14 @@ main {
   color: var(--ivory);
 }
 
+/* Wrapper already shows the focus ring; avoid a second one from the global rule */
+.preview__url-input:focus,
+.preview__url-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 .preview__url-input::placeholder {
   color: var(--ivory-mute);
   font-size: 0.78rem;
@@ -417,15 +425,6 @@ main {
 
 .preview__player-host iframe {
   pointer-events: none;
-}
-
-/* Paused: hide iframe (and YouTube's related-videos grid), show poster */
-.preview__player-wrap--paused {
-  background: #000 var(--poster) center / cover no-repeat;
-}
-
-.preview__player-wrap--paused .preview__player-host {
-  visibility: hidden;
 }
 
 .preview__player-host iframe {
@@ -707,9 +706,9 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   background: rgba(244, 236, 220, 0.06);
   border: 1px solid var(--line);
 }
@@ -735,9 +734,15 @@ main {
 }
 
 .sync-note {
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   color: var(--ivory-dim);
   transition: color var(--t-med) var(--ease);
+}
+
+/* Higher specificity so room.css base sizes (0.86rem / 0.8rem) don't override */
+.preview__row .status-pill,
+.preview__row .sync-note {
+  font-size: 0.66rem;
 }
 
 .sync-note--synced {
