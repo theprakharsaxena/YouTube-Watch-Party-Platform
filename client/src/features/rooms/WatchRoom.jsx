@@ -127,12 +127,33 @@ export default function WatchRoom() {
   }, [state.roomId, toast]);
 
   const togglePlay = () => {
-    if (playing) room.sendPlayback('pause', controller?.getCurrentTime() || undefined);
-    else room.sendPlayback('play');
+    const curTime = controller?.getCurrentTime();
+    const accurateTime =
+      typeof curTime === 'number' && curTime >= 0
+        ? Math.round(curTime * 100) / 100
+        : Math.round(position * 100) / 100;
+
+    if (playing) {
+      room.sendPlayback('pause', accurateTime);
+      controller?.pause();
+      sync.notifySeek?.(accurateTime);
+    } else {
+      const resumeTime =
+        playback.status === 'paused' && typeof playback.position === 'number' && playback.position >= 0
+          ? Math.round(playback.position * 100) / 100
+          : accurateTime;
+      room.sendPlayback('play', resumeTime);
+      controller?.seekTo(resumeTime);
+      controller?.play();
+      sync.notifySeek?.(resumeTime);
+    }
   };
   const seekTo = (seconds) => {
     const upper = duration > 0 ? duration : seconds;
-    room.sendPlayback('seek', Math.max(0, Math.min(seconds, upper)));
+    const clamped = Math.round(Math.max(0, Math.min(seconds, upper)) * 100) / 100;
+    sync.notifySeek?.(clamped);
+    room.sendPlayback('seek', clamped);
+    controller?.seekTo(clamped);
   };
   const toggleMute = () => {
     if (!controller) return;

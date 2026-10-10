@@ -42,12 +42,19 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
       loadedVideoRef.current = current.videoId;
       controller.load(current.videoId, target, shouldPlay);
     } else {
-      if (Math.abs(controller.getCurrentTime() - target) > SYNC_CONFIG.commandSeekTolerance) {
+      const curTime = controller.getCurrentTime();
+      if (Math.abs(curTime - target) > SYNC_CONFIG.commandSeekTolerance) {
         controller.seekTo(target);
         lastSeekAtRef.current = Date.now();
       }
-      if (shouldPlay) controller.play();
-      else controller.pause();
+      if (shouldPlay) {
+        controller.play();
+      } else {
+        controller.pause();
+        if (Math.abs(curTime - target) > 0.05) {
+          controller.seekTo(target);
+        }
+      }
     }
     moderatePendingRef.current = false;
 
@@ -67,6 +74,14 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     if (playerState === PlayerState.PLAYING) setAutoplayBlocked(false);
   }, [playerState]);
 
+  /** Notify sync hook that the user has performed an explicit seek or play/pause transition. */
+  const notifySeek = useCallback((targetTime) => {
+    lastSeekAtRef.current = Date.now();
+    applyingUntilRef.current = Date.now() + 1500;
+    moderatePendingRef.current = false;
+    setSyncStatus('synced');
+  }, []);
+
   // 2. Gentle drift correction while the room is playing.
   useEffect(() => {
     if (!ready || !controller || playback.status !== 'playing') return undefined;
@@ -75,13 +90,18 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
       const { playback: current, receivedAt: at } = latestRef.current;
       const target = expectedPosition(current, at);
       const drift = controller.getCurrentTime() - target;
+      const sinceLastSeek = Date.now() - lastSeekAtRef.current;
       const decision = decideDriftAction({
         drift,
         moderatePending: moderatePendingRef.current,
-        sinceLastSeekMs: Date.now() - lastSeekAtRef.current,
+        sinceLastSeekMs: sinceLastSeek,
       });
       moderatePendingRef.current = decision.moderatePending;
-      setSyncStatus(Math.abs(drift) < SYNC_CONFIG.ignoreBelow ? 'synced' : 'adjusting');
+      if (sinceLastSeek < SYNC_CONFIG.seekCooldownMs) {
+        setSyncStatus('synced');
+      } else {
+        setSyncStatus(Math.abs(drift) < SYNC_CONFIG.ignoreBelow ? 'synced' : 'adjusting');
+      }
       if (decision.action === 'seek') {
         applyingUntilRef.current = Date.now() + 1200;
         controller.seekTo(target);
@@ -103,5 +123,5 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     setAutoplayBlocked(false);
   }, [controller]);
 
-  return { autoplayBlocked, resumeFromGesture, isApplyingRemote, syncStatus };
+  return { autoplayBlocked, resumeFromGesture, isApplyingRemote, syncStatus, notifySeek };
 }

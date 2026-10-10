@@ -144,7 +144,7 @@
 .scrubber:disabled { cursor: not-allowed; opacity: 0.5; }
 .scrubber::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ivory); border: 0; box-shadow: 0 0 0 4px rgba(244, 236, 220, 0.14); }
 .scrubber::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--ivory); border: 0; }
-input.scrubber { height: 24px; background: linear-gradient(90deg, var(--amber) var(--progress), var(--ink-600) var(--progress)) center / 100% 6px no-repeat; }
+input.scrubber { height: 24px; background: linear-gradient(90deg, var(--amber) var(--progress), var(--ink-600) var(--progress)) center / 100% 6px no-repeat; touch-action: none; user-select: none; }
 input.scrubber:focus-visible { border-radius: 4px; }
 
 /* ---------- Now playing ---------- */

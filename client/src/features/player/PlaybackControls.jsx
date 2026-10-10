@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react';
 import { formatTime } from '../../utils/formatters.js';
 
@@ -21,18 +21,67 @@ export default function PlaybackControls({
   onToggleMute,
   onToggleFullscreen,
 }) {
-  const [scrub, setScrub] = useState(null); // local value while dragging; committed on release
+  const [scrub, setScrub] = useState(null); // local value while dragging or pending seek
+  const scrubRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const pendingCommitRef = useRef(null);
+  const lastCommitTimeRef = useRef(0);
+  const clearTimerRef = useRef(null);
+
   const playing = status === 'playing';
   const max = duration > 0 ? duration : Math.max(position, 1);
   const shown = scrub ?? Math.min(position, max);
 
+  // Clear pending optimistic scrub once the authoritative position catches up (within 1s)
   useEffect(() => {
-    setScrub(null);
-  }, [status]);
+    if (pendingCommitRef.current !== null) {
+      if (Math.abs(position - pendingCommitRef.current) < 1.0) {
+        clearTimeout(clearTimerRef.current);
+        pendingCommitRef.current = null;
+        setScrub(null);
+        scrubRef.current = null;
+      }
+    }
+  }, [position]);
 
-  const commit = () => {
-    if (scrub !== null) onSeek(scrub);
-    setScrub(null);
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(clearTimerRef.current);
+  }, []);
+
+  const commit = (explicitVal) => {
+    const now = Date.now();
+    isDraggingRef.current = false;
+
+    const target =
+      typeof explicitVal === 'number' && !Number.isNaN(explicitVal)
+        ? explicitVal
+        : scrubRef.current;
+
+    if (target !== null && target !== undefined && !Number.isNaN(target)) {
+      // Debounce rapid identical commits (e.g. pointerup + native change in same burst)
+      if (now - lastCommitTimeRef.current < 150 && pendingCommitRef.current === target) {
+        return;
+      }
+      lastCommitTimeRef.current = now;
+      pendingCommitRef.current = target;
+      scrubRef.current = target;
+      setScrub(target); // Keep shown pinned to target optimistically so it never snaps back!
+
+      onSeek(target);
+
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = setTimeout(() => {
+        if (pendingCommitRef.current === target) {
+          pendingCommitRef.current = null;
+          setScrub(null);
+          scrubRef.current = null;
+        }
+      }, 1500);
+    } else if (pendingCommitRef.current === null) {
+      scrubRef.current = null;
+      setScrub(null);
+    }
   };
 
   return (
@@ -75,14 +124,36 @@ export default function PlaybackControls({
             aria-valuetext={`${formatTime(shown)} of ${formatTime(max)}`}
             min={0}
             max={max}
-            step={1}
+            step={0.5}
             value={shown}
             disabled={!hasVideo || duration <= 0}
             style={{ '--progress': `${(shown / max) * 100}%` }}
-            onChange={(e) => setScrub(Number(e.target.value))}
-            onPointerUp={commit}
-            onKeyUp={commit}
-            onBlur={commit}
+            onPointerDown={(e) => {
+              isDraggingRef.current = true;
+              const val = Number(e.target.value);
+              scrubRef.current = val;
+              setScrub(val);
+            }}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              scrubRef.current = val;
+              setScrub(val);
+              // For track clicks or keyboard seeks where pointerdown didn't engage:
+              if (!isDraggingRef.current) {
+                commit(val);
+              }
+            }}
+            onPointerUp={(e) => {
+              const val = Number(e.target.value);
+              commit(!Number.isNaN(val) ? val : undefined);
+            }}
+            onPointerCancel={() => {
+              commit();
+            }}
+            onKeyUp={(e) => {
+              const val = Number(e.target.value);
+              commit(!Number.isNaN(val) ? val : undefined);
+            }}
           />
         ) : (
           <div
