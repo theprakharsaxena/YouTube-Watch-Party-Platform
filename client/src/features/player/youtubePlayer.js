@@ -116,6 +116,8 @@ export class YouTubePlayerController {
         controls: 0, // all control goes through Sidelight so it can be role-checked
         disablekb: 1,
         rel: 0,
+        showinfo: 0,
+        autohide: 1,
         playsinline: 1,
         modestbranding: 1,
         iv_load_policy: 3,
