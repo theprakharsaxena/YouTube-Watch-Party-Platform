@@ -22,5 +22,13 @@
     "salt": "9e4706ab286ed3c9a09c32af9cd2f85c",
     "hash": "13ccdde017e7a028e56031e41e3eca12ad05f39abfa5c5e59843557d9a45400e46866b5f97115fb2697ae00b09773a0060db051e1e09a19b9be6752aa5da39f3",
     "createdAt": 1791655066679
+  },
+  {
+    "id": "u_fae3d09972e0b74c",
+    "email": "sam@gmail.com",
+    "displayName": "Sam",
+    "salt": "7b71c6a59688689baeb05228d619fdb6",
+    "hash": "69dc80f29615a3910c0b53a677b55eca9eb45be6c594ecb0fa0e6483e2235951fa5659132cb793302f497197b00396da0f7502dadeaa54dab0007efd974866d7",
+    "createdAt": 1791655534841
   }
 ]
