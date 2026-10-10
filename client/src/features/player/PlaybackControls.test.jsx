@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PlaybackControls from './PlaybackControls.jsx';
 
@@ -27,7 +27,7 @@ describe('PlaybackControls', () => {
   it('shows participants a read-only progress bar and no play control', () => {
     render(<PlaybackControls {...props} canControl={false} />);
     expect(screen.queryByRole('button', { name: /play for everyone/i })).toBeNull();
-    expect(screen.queryByRole('slider')).toBeNull();
+    expect(screen.queryByRole('slider', { name: /seek/i })).toBeNull();
     expect(screen.getByRole('progressbar', { name: /playback position/i })).toBeInTheDocument();
     expect(screen.getByText(/host controls playback/i)).toBeInTheDocument();
   });
@@ -68,14 +68,27 @@ describe('PlaybackControls', () => {
     expect(slider).toHaveValue('0.2');
   });
 
-  it('triggers onToggleAmbient when ambient lighting button is clicked', async () => {
-    const onToggleAmbient = vi.fn();
-    render(<PlaybackControls {...props} ambientMode={true} onToggleAmbient={onToggleAmbient} />);
-    const ambientBtn = screen.getByRole('button', { name: /turn off ambient lighting/i });
-    expect(ambientBtn).toBeInTheDocument();
-    expect(ambientBtn).toHaveClass('icon-btn--active');
+  it('allows adjusting volume level and triggers onVolumeChange', async () => {
+    const onVolumeChange = vi.fn();
+    render(<PlaybackControls {...props} volume={70} onVolumeChange={onVolumeChange} />);
+    const volumeSlider = screen.getByRole('slider', { name: /volume level/i });
+    expect(volumeSlider).toBeInTheDocument();
+    expect(volumeSlider).toHaveValue('70');
 
-    await userEvent.click(ambientBtn);
-    expect(onToggleAmbient).toHaveBeenCalledOnce();
+    fireEvent.change(volumeSlider, { target: { value: '45' } });
+    expect(onVolumeChange).toHaveBeenCalledWith(45);
+  });
+
+  it('renders mute button and toggles mute state', async () => {
+    const onToggleMute = vi.fn();
+    const { rerender } = render(<PlaybackControls {...props} muted={false} volume={80} onToggleMute={onToggleMute} />);
+    const muteBtn = screen.getByRole('button', { name: /mute on this device/i });
+    expect(muteBtn).toBeInTheDocument();
+
+    await userEvent.click(muteBtn);
+    expect(onToggleMute).toHaveBeenCalledOnce();
+
+    rerender(<PlaybackControls {...props} muted={true} volume={0} onToggleMute={onToggleMute} />);
+    expect(screen.getByRole('button', { name: /unmute on this device/i })).toBeInTheDocument();
   });
 });

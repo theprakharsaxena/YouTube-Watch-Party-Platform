@@ -53,29 +53,19 @@ export default function WatchRoom() {
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showFsHud, setShowFsHud] = useState(true);
-  const [ambientMode, setAmbientMode] = useState(() => {
+  const [volume, setVolume] = useState(() => {
     try {
-      return localStorage.getItem('sidelight_ambient_lighting') !== 'false';
+      const saved = localStorage.getItem('sidelight_volume');
+      return saved !== null ? Number(saved) : 100;
     } catch {
-      return true;
+      return 100;
     }
   });
+  const lastVolumeRef = useRef(100);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFsHud, setShowFsHud] = useState(true);
   const fullscreenContainerRef = useRef(null);
   const hudTimerRef = useRef(null);
-
-  const handleToggleAmbient = useCallback(() => {
-    setAmbientMode((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('sidelight_ambient_lighting', String(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }, []);
 
   const now = useNow(250);
   const hasVideo = Boolean(playback.videoId);
@@ -175,12 +165,56 @@ export default function WatchRoom() {
     room.sendPlayback('seek', clamped);
     controller?.seekTo(clamped);
   };
-  const toggleMute = () => {
+
+  const handleVolumeChange = useCallback((newVolume) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(newVolume)));
+    setVolume(clamped);
+    try {
+      localStorage.setItem('sidelight_volume', String(clamped));
+    } catch {
+      /* ignore */
+    }
+
     if (!controller) return;
-    if (muted) controller.unMute();
-    else controller.mute();
-    setMuted(!muted);
-  };
+
+    if (clamped === 0) {
+      controller.mute();
+      setMuted(true);
+    } else {
+      if (muted) {
+        controller.unMute();
+        setMuted(false);
+      }
+      controller.setVolume(clamped);
+      lastVolumeRef.current = clamped;
+    }
+  }, [controller, muted]);
+
+  const toggleMute = useCallback(() => {
+    if (!controller) return;
+    if (muted) {
+      controller.unMute();
+      const restoreVolume = lastVolumeRef.current > 0 ? lastVolumeRef.current : 100;
+      controller.setVolume(restoreVolume);
+      setVolume(restoreVolume);
+      setMuted(false);
+    } else {
+      lastVolumeRef.current = volume > 0 ? volume : 100;
+      controller.mute();
+      setMuted(true);
+    }
+  }, [controller, muted, volume]);
+
+  useEffect(() => {
+    if (ready && controller) {
+      if (muted || volume === 0) {
+        controller.mute();
+      } else {
+        controller.unMute();
+        controller.setVolume(volume);
+      }
+    }
+  }, [ready, controller]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeRail = useCallback(() => setRailOpen(false), []);
   const RoleIcon = ROLE_NOTES[role]?.icon ?? Eye;
@@ -280,7 +314,7 @@ export default function WatchRoom() {
               playing={playing}
               position={position}
               duration={duration}
-              ambientMode={ambientMode}
+              ambientMode={true}
               ready={ready}
               loadFailed={player.loadFailed}
               playerError={player.playerError}
@@ -317,14 +351,14 @@ export default function WatchRoom() {
                   canControl={canControl}
                   hasVideo={hasVideo}
                   muted={muted}
+                  volume={volume}
                   isFullscreen={isFullscreen}
-                  ambientMode={ambientMode}
                   onToggle={togglePlay}
                   onSeek={seekTo}
                   onSkip={(delta) => seekTo(position + delta)}
                   onToggleMute={toggleMute}
+                  onVolumeChange={handleVolumeChange}
                   onToggleFullscreen={toggleFullscreen}
-                  onToggleAmbient={handleToggleAmbient}
                 />
               </div>
             )}
@@ -352,14 +386,14 @@ export default function WatchRoom() {
             canControl={canControl}
             hasVideo={hasVideo}
             muted={muted}
+            volume={volume}
             isFullscreen={isFullscreen}
-            ambientMode={ambientMode}
             onToggle={togglePlay}
             onSeek={seekTo}
             onSkip={(delta) => seekTo(position + delta)}
             onToggleMute={toggleMute}
+            onVolumeChange={handleVolumeChange}
             onToggleFullscreen={toggleFullscreen}
-            onToggleAmbient={handleToggleAmbient}
           />
 
           <div className="now-playing">

@@ -181,6 +181,10 @@ export class YouTubePlayerController {
     this.#call('setVolume', volume);
   }
 
+  getVolume() {
+    return this.#call('getVolume') ?? 100;
+  }
+
   isMuted() {
     return Boolean(this.#call('isMuted'));
   }

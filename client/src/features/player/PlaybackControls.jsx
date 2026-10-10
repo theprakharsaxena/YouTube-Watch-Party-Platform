@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Volume1, Volume2, VolumeX } from 'lucide-react';
 import { formatTime } from '../../utils/formatters.js';
 
 /**
@@ -13,15 +13,15 @@ export default function PlaybackControls({
   duration,
   canControl,
   hasVideo,
-  muted,
+  muted = false,
+  volume = 100,
   isFullscreen = false,
-  ambientMode = true,
   onToggle,
   onSeek,
   onSkip,
   onToggleMute,
+  onVolumeChange,
   onToggleFullscreen,
-  onToggleAmbient,
 }) {
   const [scrub, setScrub] = useState(null); // local value while dragging or pending seek
   const scrubRef = useRef(null);
@@ -172,31 +172,37 @@ export default function PlaybackControls({
         <span className="transport__time" aria-hidden="true">{formatTime(duration)}</span>
       </div>
 
-      <button
-        type="button"
-        className="icon-btn"
-        aria-label={muted ? 'Unmute on this device' : 'Mute on this device'}
-        title={muted ? 'Unmute on this device (m)' : 'Mute on this device (m)'}
-        aria-pressed={muted}
-        disabled={!hasVideo}
-        onClick={onToggleMute}
-      >
-        {muted ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
-      </button>
-
-      {onToggleAmbient && (
+      <div className="volume-control">
         <button
           type="button"
-          className={`icon-btn${ambientMode ? ' icon-btn--active' : ''}`}
-          aria-label={ambientMode ? 'Turn off ambient lighting' : 'Turn on ambient lighting'}
-          title={ambientMode ? 'Ambient lighting: On' : 'Ambient lighting: Off'}
-          aria-pressed={ambientMode}
+          className="icon-btn"
+          aria-label={muted || volume === 0 ? 'Unmute on this device' : 'Mute on this device'}
+          title={muted || volume === 0 ? 'Unmute on this device (m)' : 'Mute on this device (m)'}
+          aria-pressed={muted || volume === 0}
           disabled={!hasVideo}
-          onClick={onToggleAmbient}
+          onClick={onToggleMute}
         >
-          <Sparkles size={18} aria-hidden="true" />
+          {muted || volume === 0 ? (
+            <VolumeX size={18} aria-hidden="true" />
+          ) : volume < 50 ? (
+            <Volume1 size={18} aria-hidden="true" />
+          ) : (
+            <Volume2 size={18} aria-hidden="true" />
+          )}
         </button>
-      )}
+        <input
+          type="range"
+          className="volume-slider"
+          aria-label="Volume level"
+          min={0}
+          max={100}
+          step={1}
+          value={muted ? 0 : volume}
+          disabled={!hasVideo}
+          style={{ '--volume-level': `${muted ? 0 : volume}%` }}
+          onChange={(e) => onVolumeChange?.(Number(e.target.value))}
+        />
+      </div>
 
       {onToggleFullscreen && (
         <button

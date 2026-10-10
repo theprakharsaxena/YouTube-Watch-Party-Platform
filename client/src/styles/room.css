@@ -273,9 +273,49 @@
 .scrubber--readonly { cursor: default; display: block; }
 .scrubber:disabled { cursor: not-allowed; opacity: 0.5; }
 .scrubber::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ivory); border: 0; box-shadow: 0 0 0 4px rgba(244, 236, 220, 0.14); }
-.scrubber::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--ivory); border: 0; }
 input.scrubber { height: 24px; background: linear-gradient(90deg, var(--amber) var(--progress), var(--ink-600) var(--progress)) center / 100% 6px no-repeat; touch-action: none; user-select: none; }
 input.scrubber:focus-visible { border-radius: 4px; }
+
+/* ---------- Volume control ---------- */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.volume-slider {
+  --volume-level: 100%;
+  width: 60px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--ivory) var(--volume-level), var(--ink-600) var(--volume-level));
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  margin: 0;
+  vertical-align: middle;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ivory);
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(244, 236, 220, 0.2);
+}
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ivory);
+  border: 0;
+  cursor: pointer;
+}
+.volume-slider:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 /* ---------- Now playing ---------- */
 .now-playing { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 6px; }
