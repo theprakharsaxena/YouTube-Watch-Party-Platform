@@ -1,0 +1,40 @@
+/* Sidelight design tokens: deep ink surfaces, warm ivory type, amber/coral accents. */
+:root {
+  --ink-950: #080c18;
+  --ink-900: #0b1020;
+  --ink-850: #0f1528;
+  --ink-800: #141b31;
+  --ink-700: #1b2440;
+  --ink-600: #26314f;
+
+  --ivory: #f4ecdc;
+  --ivory-dim: #cfc6b4;
+  --ivory-mute: #a39d90; /* 6.9:1 on --ink-900 */
+  --line: rgba(244, 236, 220, 0.11);
+  --line-strong: rgba(244, 236, 220, 0.2);
+
+  --amber: #f2a65a;
+  --amber-strong: #f7b872;
+  --amber-ink: #2a1705;
+  --coral: #ef7b6a;
+  --sage: #8fc4a2;
+
+  --danger: #f08577;
+  --danger-bg: rgba(239, 123, 106, 0.12);
+
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --shadow-pop: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  --focus: 0 0 0 2px var(--ink-900), 0 0 0 4px var(--amber);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 120ms;
+  --t-med: 220ms;
+
+  --topbar-h: 56px;
+}
