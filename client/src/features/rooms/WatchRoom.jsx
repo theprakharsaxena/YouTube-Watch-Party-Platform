@@ -49,12 +49,53 @@ export default function WatchRoom() {
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFsHud, setShowFsHud] = useState(true);
+  const fullscreenContainerRef = useRef(null);
+  const hudTimerRef = useRef(null);
 
   const now = useNow(250);
   const hasVideo = Boolean(playback.videoId);
   const playing = playback.status === 'playing';
   const rawPosition = expectedPosition(playback, receivedAt, now);
   const position = duration > 0 ? Math.min(rawPosition, duration) : rawPosition;
+
+  useEffect(() => {
+    const onFsChange = () => {
+      const active = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      setIsFullscreen(active);
+      if (active) setShowFsHud(true);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener('webkitfullscreenchange', onFsChange);
+    };
+  }, []);
+
+  const toggleFullscreen = useCallback(async () => {
+    const el = fullscreenContainerRef.current;
+    if (!el) return;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) await el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleMouseMove = useCallback(() => {
+    if (!isFullscreen) return;
+    setShowFsHud(true);
+    clearTimeout(hudTimerRef.current);
+    hudTimerRef.current = setTimeout(() => setShowFsHud(false), 2500);
+  }, [isFullscreen]);
 
   // A controller's player reaching the end pauses the room there (never from remote-applied events).
   useEffect(() => {
@@ -92,6 +133,25 @@ export default function WatchRoom() {
   const closeRail = useCallback(() => setRailOpen(false), []);
   const RoleIcon = ROLE_NOTES[role]?.icon ?? Eye;
 
+  // Keyboard shortcuts: F for fullscreen, Space for play/pause, M for mute
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || videoDialogOpen || leaveOpen) return;
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMute();
+      } else if (e.key === ' ' && canControl && hasVideo) {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toggleFullscreen, canControl, hasVideo, videoDialogOpen, leaveOpen, playing]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function leave() {
     room.leaveRoom();
     navigate('/');
@@ -125,18 +185,58 @@ export default function WatchRoom() {
 
       <div className="room__body">
         <main className="room__stage" aria-label="Watch room">
-          <PlayerStage
-            hostRef={player.hostRef}
-            hasVideo={hasVideo}
-            ready={ready}
-            loadFailed={player.loadFailed}
-            playerError={player.playerError}
-            autoplayBlocked={sync.autoplayBlocked}
-            canControl={canControl}
-            onResume={sync.resumeFromGesture}
-            onChooseVideo={() => setVideoDialogOpen(true)}
-            onShieldClick={togglePlay}
-          />
+          <div
+            ref={fullscreenContainerRef}
+            className={`stage-wrapper${isFullscreen ? ' stage-wrapper--fullscreen' : ''}`}
+            onMouseMove={handleMouseMove}
+          >
+            <PlayerStage
+              hostRef={player.hostRef}
+              hasVideo={hasVideo}
+              ready={ready}
+              loadFailed={player.loadFailed}
+              playerError={player.playerError}
+              autoplayBlocked={sync.autoplayBlocked}
+              canControl={canControl}
+              isFullscreen={isFullscreen}
+              onResume={sync.resumeFromGesture}
+              onChooseVideo={() => setVideoDialogOpen(true)}
+              onShieldClick={togglePlay}
+              onDoubleClick={toggleFullscreen}
+            />
+
+            {isFullscreen && (
+              <div className={`stage__fs-hud${showFsHud ? '' : ' stage__fs-hud--hidden'}`}>
+                <div className="status-row">
+                  <span className={`status-pill status-pill--${playing ? 'playing' : 'paused'}`}>
+                    <span className="status-pill__dot" aria-hidden="true" />
+                    {!hasVideo ? 'No video' : playing ? 'Playing for everyone' : 'Paused for everyone'}
+                  </span>
+                  {hasVideo && playing && sync.syncStatus !== 'idle' && (
+                    <span className={`sync-note sync-note--${sync.syncStatus}`} role="status">
+                      {sync.syncStatus === 'synced' ? 'In step with the room' : 'Catching up to the room…'}
+                    </span>
+                  )}
+                  <span className="status-row__spacer" />
+                  <RoleBadge role={role} />
+                </div>
+                <PlaybackControls
+                  status={playback.status}
+                  position={position}
+                  duration={duration}
+                  canControl={canControl}
+                  hasVideo={hasVideo}
+                  muted={muted}
+                  isFullscreen={isFullscreen}
+                  onToggle={togglePlay}
+                  onSeek={seekTo}
+                  onSkip={(delta) => seekTo(position + delta)}
+                  onToggleMute={toggleMute}
+                  onToggleFullscreen={toggleFullscreen}
+                />
+              </div>
+            )}
+          </div>
 
           <div className="status-row">
             <span className={`status-pill status-pill--${playing ? 'playing' : 'paused'}`}>
@@ -159,10 +259,12 @@ export default function WatchRoom() {
             canControl={canControl}
             hasVideo={hasVideo}
             muted={muted}
+            isFullscreen={isFullscreen}
             onToggle={togglePlay}
             onSeek={seekTo}
             onSkip={(delta) => seekTo(position + delta)}
             onToggleMute={toggleMute}
+            onToggleFullscreen={toggleFullscreen}
           />
 
           <div className="now-playing">

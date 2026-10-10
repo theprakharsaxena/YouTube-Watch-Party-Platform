@@ -36,4 +36,13 @@ describe('PlaybackControls', () => {
     render(<PlaybackControls {...props} status="playing" canControl />);
     expect(screen.getByRole('button', { name: /pause for everyone/i })).toBeInTheDocument();
   });
+
+  it('triggers onToggleFullscreen when fullscreen button is clicked', async () => {
+    const onToggleFullscreen = vi.fn();
+    render(<PlaybackControls {...props} onToggleFullscreen={onToggleFullscreen} isFullscreen={false} />);
+    const btn = screen.getByRole('button', { name: /full screen/i });
+    expect(btn).toBeInTheDocument();
+    await userEvent.click(btn);
+    expect(onToggleFullscreen).toHaveBeenCalledOnce();
+  });
 });

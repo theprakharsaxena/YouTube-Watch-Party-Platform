@@ -10,12 +10,14 @@ export default function PlayerStage({
   playerError,
   autoplayBlocked,
   canControl,
+  isFullscreen,
   onResume,
   onChooseVideo,
   onShieldClick,
+  onDoubleClick,
 }) {
   return (
-    <div className="stage">
+    <div className={`stage${isFullscreen ? ' stage--fullscreen' : ''}`}>
       <div className="stage__frame">
         <div ref={hostRef} className="stage__player" />
 
@@ -31,6 +33,8 @@ export default function PlayerStage({
           <div
             className={`stage__shield${canControl ? ' stage__shield--active' : ''}`}
             onClick={canControl ? onShieldClick : undefined}
+            onDoubleClick={onDoubleClick}
+            title={canControl ? 'Click to play/pause · Double-click for full screen' : 'Double-click for full screen'}
             aria-hidden="true"
           />
         )}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Lock, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react';
+import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react';
 import { formatTime } from '../../utils/formatters.js';
 
 /**
@@ -14,10 +14,12 @@ export default function PlaybackControls({
   canControl,
   hasVideo,
   muted,
+  isFullscreen = false,
   onToggle,
   onSeek,
   onSkip,
   onToggleMute,
+  onToggleFullscreen,
 }) {
   const [scrub, setScrub] = useState(null); // local value while dragging; committed on release
   const playing = status === 'playing';
@@ -101,13 +103,27 @@ export default function PlaybackControls({
         type="button"
         className="icon-btn"
         aria-label={muted ? 'Unmute on this device' : 'Mute on this device'}
-        title={muted ? 'Unmute on this device' : 'Mute on this device'}
+        title={muted ? 'Unmute on this device (m)' : 'Mute on this device (m)'}
         aria-pressed={muted}
         disabled={!hasVideo}
         onClick={onToggleMute}
       >
         {muted ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
       </button>
+
+      {onToggleFullscreen && (
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+          title={isFullscreen ? 'Exit full screen (f)' : 'Full screen (f)'}
+          aria-pressed={isFullscreen}
+          disabled={!hasVideo}
+          onClick={onToggleFullscreen}
+        >
+          {isFullscreen ? <Minimize size={18} aria-hidden="true" /> : <Maximize size={18} aria-hidden="true" />}
+        </button>
+      )}
     </div>
   );
 }
