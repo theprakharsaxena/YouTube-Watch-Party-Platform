@@ -67,4 +67,15 @@ describe('PlaybackControls', () => {
     rerender(<PlaybackControls {...props} canControl onSeek={onSeek} position={0.2} />);
     expect(slider).toHaveValue('0.2');
   });
+
+  it('triggers onToggleAmbient when ambient lighting button is clicked', async () => {
+    const onToggleAmbient = vi.fn();
+    render(<PlaybackControls {...props} ambientMode={true} onToggleAmbient={onToggleAmbient} />);
+    const ambientBtn = screen.getByRole('button', { name: /turn off ambient lighting/i });
+    expect(ambientBtn).toBeInTheDocument();
+    expect(ambientBtn).toHaveClass('icon-btn--active');
+
+    await userEvent.click(ambientBtn);
+    expect(onToggleAmbient).toHaveBeenCalledOnce();
+  });
 });

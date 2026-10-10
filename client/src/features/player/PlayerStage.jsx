@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AlertTriangle, Film, Hourglass, Play, RefreshCw } from 'lucide-react';
 import Button from '../../components/Button.jsx';
+import useAmbientLighting from './useAmbientLighting.js';
+import useAmbientSyncPlayer from './useAmbientSyncPlayer.js';
 
 // Generous gap threshold (ms) to recognize double clicks even when clicks are not frequent or have a gap.
 const DOUBLE_CLICK_MAX_GAP_MS = 600;
@@ -11,6 +13,11 @@ const SINGLE_CLICK_WAIT_MS = 320;
 export default function PlayerStage({
   hostRef,
   hasVideo,
+  videoId = null,
+  playing = false,
+  position = 0,
+  duration = 0,
+  ambientMode = true,
   ready,
   loadFailed,
   playerError,
@@ -87,8 +94,49 @@ export default function PlayerStage({
     }
   }, [canControl, onShieldClick, onDoubleClick]);
 
+  const isAmbientActive = Boolean(hasVideo && ambientMode && !isFullscreen);
+
+  const { imageUrl, style: ambientStyle } = useAmbientLighting({
+    videoId,
+    position,
+    duration,
+    enabled: isAmbientActive,
+  });
+
+  const ambientPlayerHostRef = useAmbientSyncPlayer({
+    videoId,
+    playing,
+    position,
+    enabled: isAmbientActive,
+  });
+
   return (
     <div className={`stage${isFullscreen ? ' stage--fullscreen' : ''}`}>
+      {isAmbientActive && (
+        <div
+          className={`stage__ambient${playing ? ' stage__ambient--playing' : ''}`}
+          style={ambientStyle}
+          data-testid="stage-ambient"
+          aria-hidden="true"
+        >
+          {imageUrl && (
+            <div
+              className="stage__ambient-art"
+              data-testid="stage-ambient-art"
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+              }}
+            />
+          )}
+          <div className="stage__ambient-mesh" />
+          <div
+            ref={ambientPlayerHostRef}
+            className="stage__ambient-video"
+            data-testid="stage-ambient-video"
+          />
+        </div>
+      )}
+
       <div
         className="stage__frame"
         onClick={handleStageClick}

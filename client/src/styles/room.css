@@ -99,7 +99,136 @@
   pointer-events: none;
 }
 
-.stage__frame { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: calc(100dvh - var(--topbar-h) - 250px); min-height: 200px; margin: 0 auto; background: #05070e; border-radius: var(--radius-lg); border: 1px solid var(--line); overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8); }
+.stage { position: relative; width: 100%; }
+.stage--fullscreen .stage__ambient { display: none; }
+
+/* ---------- Ambient lighting effect (YouTube style) ---------- */
+.stage__ambient {
+  position: absolute;
+  inset: -18px -26px -32px -26px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+  border-radius: calc(var(--radius-lg) + 16px);
+  opacity: 0.42;
+  transform: translateZ(0);
+  transition: opacity 0.8s ease;
+  will-change: transform, opacity;
+}
+
+.stage__ambient--playing {
+  opacity: 0.88;
+}
+
+.stage__ambient-art {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(65px) saturate(240%) brightness(1.15);
+  transform: scale(1.16);
+  border-radius: inherit;
+  opacity: 0.75;
+  transition: opacity 0.8s ease, filter 0.8s ease;
+}
+
+.stage__ambient--playing .stage__ambient-art {
+  animation: ambientBreathe 7s ease-in-out infinite alternate;
+}
+
+/* Dynamic color mesh powered entirely by extracted video colors */
+.stage__ambient-mesh {
+  position: absolute;
+  inset: -12%;
+  background:
+    radial-gradient(circle at 18% 25%, var(--ambient-tl, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 82% 25%, var(--ambient-tr, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 18% 78%, var(--ambient-bl, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 82% 78%, var(--ambient-br, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, var(--ambient-c, transparent) 0%, transparent 68%);
+  filter: blur(52px);
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  border-radius: inherit;
+  transition: opacity 0.8s ease, background 0.8s ease;
+}
+
+.stage__ambient--playing .stage__ambient-mesh {
+  animation: ambientAurora 12s ease-in-out infinite alternate;
+}
+
+/* Real-time synchronized live ambient video layer */
+.stage__ambient-video {
+  position: absolute;
+  top: -12%;
+  left: -8%;
+  width: 116%;
+  height: 124%;
+  pointer-events: none;
+  overflow: hidden;
+  filter: blur(48px) saturate(230%) brightness(1.2);
+  border-radius: calc(var(--radius-lg) + 24px);
+  transform: translateZ(0);
+  opacity: 0.82;
+  transition: opacity 0.5s ease;
+}
+
+.stage__ambient-video iframe {
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 100% !important;
+  height: 140% !important;
+  border: 0;
+  pointer-events: none;
+}
+
+.stage__ambient--playing .stage__ambient-video {
+  opacity: 0.95;
+}
+
+@keyframes ambientBreathe {
+  0% {
+    transform: scale(1.12) translateY(0);
+    opacity: 0.65;
+    filter: blur(60px) saturate(220%) brightness(1.1);
+  }
+  50% {
+    transform: scale(1.22) translateY(-6px);
+    opacity: 0.95;
+    filter: blur(78px) saturate(270%) brightness(1.3);
+  }
+  100% {
+    transform: scale(1.15) translateY(4px);
+    opacity: 0.75;
+    filter: blur(66px) saturate(235%) brightness(1.18);
+  }
+}
+
+@keyframes ambientAurora {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: rotate(2.5deg) scale(1.08);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(-2.5deg) scale(1.04);
+    opacity: 0.58;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage__ambient--playing .stage__ambient-art,
+  .stage__ambient--playing .stage__ambient-mesh {
+    animation: none;
+  }
+}
+
+.stage__frame { position: relative; z-index: 1; width: 100%; aspect-ratio: 16 / 9; max-height: calc(100dvh - var(--topbar-h) - 250px); min-height: 200px; margin: 0 auto; background: #05070e; border-radius: var(--radius-lg); border: 1px solid var(--line); overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8); }
 .stage__player { position: absolute; top: -20%; left: 0; width: 100%; height: 140%; pointer-events: none; }
 .stage__player iframe { position: absolute; inset: 0; width: 100% !important; height: 100% !important; border: 0; }
 .stage__shield { position: absolute; inset: 0; z-index: 2; cursor: pointer; }
@@ -129,6 +258,7 @@
 .sync-note--adjusting { color: var(--amber); }
 
 .transport { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--ink-850); }
+.transport .icon-btn--active { color: var(--amber); background: rgba(242, 166, 90, 0.16); box-shadow: 0 0 10px rgba(242, 166, 90, 0.2); }
 .transport__buttons { display: flex; align-items: center; gap: 4px; flex: none; }
 .transport__locked { display: inline-flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 0.85rem; color: var(--ivory-dim); min-height: 44px; }
 .transport__timeline { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }

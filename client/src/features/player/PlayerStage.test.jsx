@@ -139,4 +139,64 @@ describe('PlayerStage double-click & single-click handling', () => {
     expect(onDoubleClick).toHaveBeenCalledOnce();
     expect(onShieldClick).not.toHaveBeenCalled();
   });
+
+  it('renders ambient lighting effect with YouTube video thumbnail and active playing state', () => {
+    const hostRef = { current: null };
+    const { container, rerender } = render(
+      <PlayerStage
+        hostRef={hostRef}
+        hasVideo={true}
+        videoId="dQw4w9WgXcQ"
+        playing={true}
+        ambientMode={true}
+      />
+    );
+
+    const ambient = container.querySelector('.stage__ambient');
+    expect(ambient).toBeInTheDocument();
+    expect(ambient).toHaveClass('stage__ambient--playing');
+
+    const ambientArt = container.querySelector('.stage__ambient-art');
+    expect(ambientArt).toBeInTheDocument();
+    expect(ambientArt.style.backgroundImage).toContain('dQw4w9WgXcQ');
+    expect(container.querySelector('.stage__ambient-mesh')).toBeInTheDocument();
+    expect(container.querySelector('.stage__ambient-video')).toBeInTheDocument();
+
+    // When paused, playing modifier is removed
+    rerender(
+      <PlayerStage
+        hostRef={hostRef}
+        hasVideo={true}
+        videoId="dQw4w9WgXcQ"
+        playing={false}
+        ambientMode={true}
+      />
+    );
+    expect(container.querySelector('.stage__ambient')).not.toHaveClass('stage__ambient--playing');
+
+    // When ambientMode is false, ambient element is not rendered
+    rerender(
+      <PlayerStage
+        hostRef={hostRef}
+        hasVideo={true}
+        videoId="dQw4w9WgXcQ"
+        playing={true}
+        ambientMode={false}
+      />
+    );
+    expect(container.querySelector('.stage__ambient')).toBeNull();
+
+    // When fullscreen, ambient element is not rendered
+    rerender(
+      <PlayerStage
+        hostRef={hostRef}
+        hasVideo={true}
+        videoId="dQw4w9WgXcQ"
+        playing={true}
+        ambientMode={true}
+        isFullscreen={true}
+      />
+    );
+    expect(container.querySelector('.stage__ambient')).toBeNull();
+  });
 });

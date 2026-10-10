@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react';
+import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { formatTime } from '../../utils/formatters.js';
 
 /**
@@ -15,11 +15,13 @@ export default function PlaybackControls({
   hasVideo,
   muted,
   isFullscreen = false,
+  ambientMode = true,
   onToggle,
   onSeek,
   onSkip,
   onToggleMute,
   onToggleFullscreen,
+  onToggleAmbient,
 }) {
   const [scrub, setScrub] = useState(null); // local value while dragging or pending seek
   const scrubRef = useRef(null);
@@ -181,6 +183,20 @@ export default function PlaybackControls({
       >
         {muted ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
       </button>
+
+      {onToggleAmbient && (
+        <button
+          type="button"
+          className={`icon-btn${ambientMode ? ' icon-btn--active' : ''}`}
+          aria-label={ambientMode ? 'Turn off ambient lighting' : 'Turn on ambient lighting'}
+          title={ambientMode ? 'Ambient lighting: On' : 'Ambient lighting: Off'}
+          aria-pressed={ambientMode}
+          disabled={!hasVideo}
+          onClick={onToggleAmbient}
+        >
+          <Sparkles size={18} aria-hidden="true" />
+        </button>
+      )}
 
       {onToggleFullscreen && (
         <button

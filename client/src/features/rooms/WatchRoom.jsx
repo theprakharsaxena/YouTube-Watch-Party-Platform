@@ -55,8 +55,27 @@ export default function WatchRoom() {
   const [muted, setMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFsHud, setShowFsHud] = useState(true);
+  const [ambientMode, setAmbientMode] = useState(() => {
+    try {
+      return localStorage.getItem('sidelight_ambient_lighting') !== 'false';
+    } catch {
+      return true;
+    }
+  });
   const fullscreenContainerRef = useRef(null);
   const hudTimerRef = useRef(null);
+
+  const handleToggleAmbient = useCallback(() => {
+    setAmbientMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidelight_ambient_lighting', String(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   const now = useNow(250);
   const hasVideo = Boolean(playback.videoId);
@@ -257,6 +276,11 @@ export default function WatchRoom() {
             <PlayerStage
               hostRef={player.hostRef}
               hasVideo={hasVideo}
+              videoId={playback.videoId}
+              playing={playing}
+              position={position}
+              duration={duration}
+              ambientMode={ambientMode}
               ready={ready}
               loadFailed={player.loadFailed}
               playerError={player.playerError}
@@ -294,11 +318,13 @@ export default function WatchRoom() {
                   hasVideo={hasVideo}
                   muted={muted}
                   isFullscreen={isFullscreen}
+                  ambientMode={ambientMode}
                   onToggle={togglePlay}
                   onSeek={seekTo}
                   onSkip={(delta) => seekTo(position + delta)}
                   onToggleMute={toggleMute}
                   onToggleFullscreen={toggleFullscreen}
+                  onToggleAmbient={handleToggleAmbient}
                 />
               </div>
             )}
@@ -327,11 +353,13 @@ export default function WatchRoom() {
             hasVideo={hasVideo}
             muted={muted}
             isFullscreen={isFullscreen}
+            ambientMode={ambientMode}
             onToggle={togglePlay}
             onSeek={seekTo}
             onSkip={(delta) => seekTo(position + delta)}
             onToggleMute={toggleMute}
             onToggleFullscreen={toggleFullscreen}
+            onToggleAmbient={handleToggleAmbient}
           />
 
           <div className="now-playing">
