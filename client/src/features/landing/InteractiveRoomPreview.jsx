@@ -368,6 +368,7 @@ export default function InteractiveRoomPreview() {
     };
 
     const onPointerUp = (upEvent) => {
+      upEvent?.stopPropagation?.();
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
@@ -383,7 +384,6 @@ export default function InteractiveRoomPreview() {
 
       setSyncMessage(`Seeked to ${formatTime(finalTime)} · Synced`);
       setTimeout(() => setSyncMessage('In step with the room'), 1500);
-      spawnReaction('✨', 50);
     };
 
     window.addEventListener('pointermove', onPointerMove);
