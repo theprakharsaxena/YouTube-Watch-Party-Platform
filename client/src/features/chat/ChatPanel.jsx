@@ -11,11 +11,13 @@ function formatTime(timestamp) {
 
 export default function ChatPanel({ messages, meId, onSendMessage, isViewer = false }) {
   const [text, setText] = useState('');
-  const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView?.({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages.length]);
 
   const handleSubmit = (e) => {
@@ -25,12 +27,12 @@ export default function ChatPanel({ messages, meId, onSendMessage, isViewer = fa
     if (!trimmed) return;
     onSendMessage(trimmed);
     setText('');
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   };
 
   return (
     <div className="chat-panel">
-      <div className="chat-panel__messages" tabIndex={0} aria-label="Chat message history">
+      <div className="chat-panel__messages" ref={messagesContainerRef} tabIndex={0} aria-label="Chat message history">
         {messages.length === 0 ? (
           <div className="chat-panel__empty">
             <p>No messages yet.</p>
@@ -64,7 +66,6 @@ export default function ChatPanel({ messages, meId, onSendMessage, isViewer = fa
             );
           })
         )}
-        <div ref={bottomRef} />
       </div>
 
       {isViewer && (
