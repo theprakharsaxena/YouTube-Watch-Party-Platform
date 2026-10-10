@@ -48,6 +48,7 @@ export default function WatchRoom() {
 
   const [railOpen, setRailOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [suggestDialogOpen, setSuggestDialogOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -193,6 +194,37 @@ export default function WatchRoom() {
         </div>
       )}
 
+      {canControl && room.pendingRequests?.length > 0 && (
+        <div className="pending-requests" role="region" aria-label="Pending video requests">
+          {room.pendingRequests.map((req) => (
+            <div key={req.id} className="banner banner--approval">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Film size={16} aria-hidden="true" />
+                <span>
+                  <strong>{req.requesterName}</strong> requested to change video
+                  {req.payload?.videoUrl ? `: ${req.payload.videoUrl}` : ''}
+                </span>
+              </div>
+              <div className="banner__actions">
+                <Button size="sm" variant="primary" onClick={() => room.respondChangeRequest(req.id, true)}>
+                  Approve
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => room.respondChangeRequest(req.id, false)}>
+                  Decline
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!canControl && room.pendingRequests?.some((r) => r.requesterId === meParticipant?.id) && (
+        <div className="banner" role="status">
+          <RefreshCw size={16} aria-hidden="true" />
+          <span>Your video change request has been submitted and is awaiting approval by the host or moderator.</span>
+        </div>
+      )}
+
       <div className="room__body">
         <main className="room__stage" aria-label="Watch room">
           <div
@@ -289,9 +321,13 @@ export default function WatchRoom() {
                 {meParticipant && host?.id !== meParticipant.id ? '' : ' (you)'}
               </p>
             </div>
-            {canControl && (
+            {canControl ? (
               <Button variant="secondary" icon={Film} onClick={() => setVideoDialogOpen(true)} id="change-video-button">
                 {hasVideo ? 'Change video' : 'Choose video'}
+              </Button>
+            ) : (
+              <Button variant="secondary" icon={Film} onClick={() => setSuggestDialogOpen(true)} id="suggest-video-button">
+                Suggest video
               </Button>
             )}
           </div>
@@ -318,6 +354,17 @@ export default function WatchRoom() {
       </div>
 
       <ChangeVideoDialog open={videoDialogOpen} onClose={() => setVideoDialogOpen(false)} onSubmit={room.changeVideo} />
+
+      <ChangeVideoDialog
+        open={suggestDialogOpen}
+        onClose={() => setSuggestDialogOpen(false)}
+        onSubmit={async (url) => {
+          room.requestChange('change_video', { videoUrl: url });
+        }}
+        title="Suggest a video"
+        description="The host or moderator will review and approve your suggestion before it plays for the room."
+        submitLabel="Request approval"
+      />
 
       <Dialog
         open={leaveOpen}

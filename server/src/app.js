@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { normalizeRoomId } from './rooms/roomValidation.js';
 import { AppError } from './utils/errors.js';
+import { AuthService } from './auth/authService.js';
 
-export function createApp({ config, roomService }) {
+export function createApp({ config, roomService, authService = new AuthService() }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors({ origin: config.clientOrigins }));
@@ -11,6 +12,45 @@ export function createApp({ config, roomService }) {
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', rooms: roomService.store.size, uptimeSeconds: Math.round(process.uptime()) });
+  });
+
+  // Authentication endpoints
+  app.post('/api/auth/register', (req, res) => {
+    try {
+      const result = authService.register(req.body ?? {});
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof AppError) return res.status(400).json({ code: error.code, message: error.message });
+      res.status(500).json({ code: 'INTERNAL', message: 'Registration failed.' });
+    }
+  });
+
+  app.post('/api/auth/login', (req, res) => {
+    try {
+      const result = authService.login(req.body ?? {});
+      res.json(result);
+    } catch (error) {
+      if (error instanceof AppError) return res.status(401).json({ code: error.code, message: error.message });
+      res.status(500).json({ code: 'INTERNAL', message: 'Login failed.' });
+    }
+  });
+
+  app.post('/api/auth/guest', (req, res) => {
+    try {
+      const result = authService.guestLogin(req.body ?? {});
+      res.json(result);
+    } catch (error) {
+      if (error instanceof AppError) return res.status(400).json({ code: error.code, message: error.message });
+      res.status(500).json({ code: 'INTERNAL', message: 'Guest session failed.' });
+    }
+  });
+
+  app.get('/api/auth/me', (req, res) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const user = authService.verifyToken(token);
+    if (!user) return res.status(401).json({ code: 'UNAUTHORIZED', message: 'Invalid or expired session.' });
+    res.json({ user });
   });
 
   // Lets the join screen validate a code before opening a socket. Reveals only existence/size.

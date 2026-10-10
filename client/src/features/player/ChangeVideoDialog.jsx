@@ -5,7 +5,14 @@ import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
 import { VIDEO_URL_HINT, validateVideoInput } from '../../utils/youtube.js';
 
-export default function ChangeVideoDialog({ open, onClose, onSubmit }) {
+export default function ChangeVideoDialog({
+  open,
+  onClose,
+  onSubmit,
+  title = 'Choose a video',
+  description = 'Everyone in the room switches to it immediately. It starts paused so you can all get ready.',
+  submitLabel = 'Load video',
+}) {
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -37,8 +44,8 @@ export default function ChangeVideoDialog({ open, onClose, onSubmit }) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Choose a video"
-      description="Everyone in the room switches to it immediately. It starts paused so you can all get ready."
+      title={title}
+      description={description}
       labelledBy="change-video-title"
     >
       <form onSubmit={handleSubmit} noValidate className="form-stack">
@@ -55,7 +62,7 @@ export default function ChangeVideoDialog({ open, onClose, onSubmit }) {
         />
         <div className="dialog__actions">
           <Button onClick={onClose} variant="ghost">Cancel</Button>
-          <Button type="submit" variant="primary" icon={Film} loading={busy}>Load video</Button>
+          <Button type="submit" variant="primary" icon={Film} loading={busy}>{submitLabel}</Button>
         </div>
       </form>
     </Dialog>

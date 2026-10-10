@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Crown, MoreVertical, ShieldCheck, ShieldOff, UserMinus } from 'lucide-react';
+import { Crown, Eye, MoreVertical, ShieldCheck, ShieldOff, UserCheck, UserMinus } from 'lucide-react';
 
 /**
  * Host-only per-participant menu. Positioned with `fixed` so the scrolling list can't clip it.
@@ -13,9 +13,12 @@ export default function ParticipantMenu({ participant, onChooseAction }) {
 
   const items = [
     participant.role === 'moderator'
-      ? { id: 'demote', label: 'Remove moderator role', icon: ShieldOff }
-      : { id: 'promote', label: 'Make moderator', icon: ShieldCheck },
-    { id: 'transfer', label: 'Make host…', icon: Crown },
+      ? { id: 'demote', label: 'Demote to Participant', icon: ShieldOff }
+      : { id: 'promote', label: 'Make Moderator', icon: ShieldCheck },
+    participant.role === 'viewer'
+      ? { id: 'demote', label: 'Set as Participant', icon: UserCheck }
+      : { id: 'set_viewer', label: 'Set as Viewer', icon: Eye },
+    { id: 'transfer', label: 'Make Host…', icon: Crown },
     { id: 'remove', label: 'Remove from room…', icon: UserMinus, danger: true },
   ];
 

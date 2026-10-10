@@ -15,6 +15,7 @@ export function RoomProvider({ children }) {
   const [room, setRoom] = useState(EMPTY);
   const [chatMessages, setChatMessages] = useState([]);
   const [reactions, setReactions] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const roomRef = useRef(room); // always-fresh mirror for socket callbacks (avoids stale closures)
   const waiters = useRef(new Set());
 
@@ -74,6 +75,9 @@ export function RoomProvider({ children }) {
       if (state.chat && Array.isArray(state.chat)) {
         setChatMessages(state.chat);
       }
+      if (state.pendingRequests && Array.isArray(state.pendingRequests)) {
+        setPendingRequests(state.pendingRequests);
+      }
       update({ state, receivedAt: Date.now() });
     };
     const myId = () => roomRef.current.me?.participantId;
@@ -85,6 +89,9 @@ export function RoomProvider({ children }) {
       saveSession(data.roomId, { participantId: data.participantId, token: data.token, name });
       if (data.state.chat && Array.isArray(data.state.chat)) {
         setChatMessages(data.state.chat);
+      }
+      if (data.state.pendingRequests && Array.isArray(data.state.pendingRequests)) {
+        setPendingRequests(data.state.pendingRequests);
       }
       update({
         phase: 'joined',
@@ -114,6 +121,20 @@ export function RoomProvider({ children }) {
         setTimeout(() => {
           setReactions((prev) => prev.filter((r) => r.key !== item.key));
         }, 2600);
+      },
+      change_requested: ({ state, request, by }) => {
+        applyState(state);
+        setPendingRequests((prev) => [...prev.filter((r) => r.id !== request.id), request]);
+        toast.info(`${by.name} requested to change the video.`);
+      },
+      change_request_resolved: ({ state, requestId, approved, resolvedBy }) => {
+        applyState(state);
+        setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+        if (approved) {
+          toast.success(`${resolvedBy.name} approved the video change request.`);
+        } else {
+          toast.info(`The video change request was declined.`);
+        }
       },
       participant_joined: ({ state, participant }) => {
         applyState(state);
@@ -220,12 +241,14 @@ export function RoomProvider({ children }) {
     if (roomId) clearSession(roomId);
     setChatMessages([]);
     setReactions([]);
+    setPendingRequests([]);
     update(EMPTY);
   }, [socket, update]);
 
   const resetRoom = useCallback(() => {
     setChatMessages([]);
     setReactions([]);
+    setPendingRequests([]);
     update(EMPTY);
   }, [update]);
 
@@ -268,6 +291,29 @@ export function RoomProvider({ children }) {
     [socket],
   );
 
+  const requestChange = useCallback(
+    (type, payload) => {
+      if (!socket.connected) {
+        toast.error('You are offline.');
+        return;
+      }
+      socket.emit('request_change', { type, payload });
+      toast.info('Request submitted for approval by host & moderators.');
+    },
+    [socket, toast],
+  );
+
+  const respondChangeRequest = useCallback(
+    (requestId, approved) => {
+      if (!socket.connected) {
+        toast.error('You are offline.');
+        return;
+      }
+      socket.emit('respond_change_request', { requestId, approved });
+    },
+    [socket, toast],
+  );
+
   const value = useMemo(() => {
     const participants = room.state?.participants ?? [];
     const meParticipant = participants.find((p) => p.id === room.me?.participantId) ?? null;
@@ -283,8 +329,11 @@ export function RoomProvider({ children }) {
       host: participants.find((p) => p.id === room.state?.hostId) ?? null,
       chatMessages,
       reactions,
+      pendingRequests,
       sendChatMessage,
       sendReaction,
+      requestChange,
+      respondChangeRequest,
       createRoom,
       joinRoom,
       leaveRoom,
@@ -294,7 +343,7 @@ export function RoomProvider({ children }) {
       assignRole,
       removeParticipant,
     };
-  }, [room, status, chatMessages, reactions, sendChatMessage, sendReaction, createRoom, joinRoom, leaveRoom, resetRoom, sendPlayback, changeVideo, assignRole, removeParticipant]);
+  }, [room, status, chatMessages, reactions, pendingRequests, sendChatMessage, sendReaction, requestChange, respondChangeRequest, createRoom, joinRoom, leaveRoom, resetRoom, sendPlayback, changeVideo, assignRole, removeParticipant]);
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }

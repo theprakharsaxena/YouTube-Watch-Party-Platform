@@ -41,6 +41,7 @@ export default function ParticipantRail({
     const fail = (error) => toast.error(error.message || 'That did not work.');
     if (actionId === 'promote') onAssignRole(participant.id, 'moderator').catch(fail);
     else if (actionId === 'demote') onAssignRole(participant.id, 'participant').catch(fail);
+    else if (actionId === 'set_viewer') onAssignRole(participant.id, 'viewer').catch(fail);
     else setPending({ type: actionId, participant });
   }
 

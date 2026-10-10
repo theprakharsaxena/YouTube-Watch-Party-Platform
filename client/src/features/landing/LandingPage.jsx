@@ -1,14 +1,18 @@
-import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Brand from '../../components/Brand.jsx';
 import RoomPreview from './RoomPreview.jsx';
+import AuthDialog from '../../components/AuthDialog.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const PERMISSIONS = [
   { action: 'Watch in sync', host: true, moderator: true, participant: true },
   { action: 'Play, pause and seek', host: true, moderator: true, participant: false },
-  { action: 'Change the video', host: true, moderator: true, participant: false },
-  { action: 'Promote moderators', host: true, moderator: false, participant: false },
-  { action: 'Remove people', host: true, moderator: false, participant: false },
+  { action: 'Change the video directly', host: true, moderator: true, participant: false },
+  { action: 'Request video change (with approval)', host: true, moderator: true, participant: true },
+  { action: 'Promote moderators & viewers', host: true, moderator: false, participant: false },
+  { action: 'Remove participants & transfer host', host: true, moderator: false, participant: false },
 ];
 
 function Mark({ on }) {
@@ -20,6 +24,9 @@ function Mark({ on }) {
 }
 
 export default function LandingPage() {
+  const { user, logout } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
+
   return (
     <div className="landing">
       <header className="landing__nav">
@@ -28,8 +35,25 @@ export default function LandingPage() {
           <a href="#how-it-works">How it works</a>
           <a href="#roles">Roles</a>
           <Link to="/join" className="btn btn--ghost btn--sm">Join a room</Link>
+          {user && !user.isGuest ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.875rem', color: 'var(--amber)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <User size={14} aria-hidden="true" />
+                <span>{user.username}</span>
+              </span>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={logout}>
+                Log out
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="btn btn--secondary btn--sm" onClick={() => setAuthOpen(true)}>
+              Log in / Register
+            </button>
+          )}
         </nav>
       </header>
+
+      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
 
       <main>
         <section className="hero" aria-labelledby="hero-title">

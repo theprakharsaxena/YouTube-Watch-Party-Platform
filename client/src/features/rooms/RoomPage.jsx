@@ -5,6 +5,7 @@ import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
 import { useRoom } from '../../hooks/useRoom.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { fetchRoomInfo } from '../../services/api.js';
 import { loadSession } from '../../services/socket.js';
 import { formatRoomCode, parseRoomInput } from '../../utils/formatters.js';
@@ -48,9 +49,10 @@ export default function RoomPage() {
   const code = parseRoomInput(rawId);
   const room = useRoom();
   const { phase, roomId: activeRoomId, endedReason, joinRoom, resetRoom } = room;
+  const { user } = useAuth();
 
   const [lookup, setLookup] = useState({ status: 'checking' });
-  const [name, setName] = useState('');
+  const [name, setName] = useState(user?.username || '');
   const [nameError, setNameError] = useState('');
   const [joining, setJoining] = useState(false);
   const autoJoinTried = useRef(null);

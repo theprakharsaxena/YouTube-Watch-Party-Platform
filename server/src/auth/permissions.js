@@ -4,6 +4,7 @@ export const Roles = Object.freeze({
   HOST: 'host',
   MODERATOR: 'moderator',
   PARTICIPANT: 'participant',
+  VIEWER: 'viewer',
 });
 
 export const Actions = Object.freeze({

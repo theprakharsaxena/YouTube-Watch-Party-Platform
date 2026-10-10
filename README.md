@@ -17,55 +17,74 @@ In Sidelight:
 
 ---
 
-## 2. Feature List
+## 2. Feature List & Assignment Deliverables
 
-- **Cinematic Watch Stage**: High-contrast, warm dark-ink UI with custom typography (`Fraunces` editorial serif + `DM Sans` geometric body), transparent role-aware click shield, and custom brand mark.
-- **Room Creation & Sharing**: Instant room generation with collision-resistant 10-character alphanumeric room codes (`ABCDE-FGHJK`) and one-click shareable invite links with clipboard fallback.
-- **Official YouTube IFrame Player API Integration**: Deep integration with the official YouTube IFrame API supporting all standard YouTube watch URLs, short `youtu.be` links, shorts, embeds, and raw 11-char video IDs.
-- **Server-Authoritative Playback Synchronization**:
-  - Synchronized Play / Pause across all participants.
-  - Synchronized Seeking with scrub bar for controllers and read-only progress indicator for participants.
+### Core Requirements
+- **Server-Authoritative Real-Time Playback Synchronization**:
+  - Synchronized Play / Pause across all participants in real time.
+  - Synchronized Seeking with interactive scrub bar for controllers and read-only progress indicator for participants.
   - Video switching that propagates immediately to all connected peers.
   - Late-join extrapolation: participants joining mid-video immediately jump to the current elapsed position.
-- **Role Management & Moderation**:
-  - **Host**: Complete control over playback, video selection, role assignments, and participant eviction.
-  - **Moderator**: Can play, pause, seek, and change videos; cannot evict users or promote others.
-  - **Participant**: Watch-only experience with real-time status indicators and participant lists.
-  - **Host Promotion / Demotion**: Host can promote any participant to Moderator or demote them.
-  - **Host Ownership Transfer**: Host can transfer room ownership to another participant with confirmation dialog.
-  - **Graceful Host Succession**: If the host disconnects and fails to return within the grace period, host ownership automatically transfers to the longest-standing moderator, or longest-standing participant.
-  - **Participant Removal**: Host can evict problematic users; evicted tokens are blacklisted from re-entering that room.
-- **Resilient Connection Handling**:
-  - Real-time connection badge (Connected, Connecting, Reconnecting, Offline).
-  - 45-second reconnect grace window: if a tab disconnects or refreshes, their seat and role are preserved.
-  - Multi-tab seat collision handling: opening a seat in another tab cleanly notifies and detaches the superseded socket.
-  - Autoplay policy recovery: unobtrusive "Click to join playback" gesture overlay when browser policies block unmuted autoplay.
-- **Empty State & Error Safeguards**: Accessible native `<dialog>` modals, toast notification region, inline validation, and robust error codes.
+- **Room-Based Architecture**:
+  - Instant room generation with collision-resistant 10-character alphanumeric room codes (`ABCDE-FGHJK`).
+  - One-click shareable invite links with clipboard fallback and direct URL join routing (`/r/:roomId`).
+- **Official YouTube IFrame Player API**:
+  - Embedded controllable YouTube player supporting standard watch URLs, short `youtu.be` links, shorts, embeds, and raw video IDs.
+  - Clean video view with click shield that suppresses unwanted third-party overlays.
+  - Dedicated Fullscreen mode with responsive controls HUD and double-click toggle.
+- **WebSockets Real-Time Communication**:
+  - Low-latency bidirectional events powered by Socket.IO with token-bucket rate limiting and session reconnects.
+- **Role-Based Access Control (RBAC)**:
+  - **Host**: Creator auto-assigned full control: play/pause, seek, change video, assign roles, remove participants, transfer host.
+  - **Moderator**: Can play, pause, seek, and change video.
+  - **Participant**: Watch-only by default; cannot control playback directly.
+  - **Viewer**: Watch-only alias role supported for custom permission tiers.
+  - **Backend Role Enforcement**: Zero-trust validation rejects unauthorized commands directly on the server.
+- **Participant Change Request & Approval Workflow**:
+  - As required by the assignment, participants cannot unilaterally alter playback or video state.
+  - Participants can submit a video change request (`request_change`).
+  - Hosts and Moderators receive the request in real time and can **Approve** (which automatically applies the change to the entire room) or **Decline**.
+
+### Bonus Features & Advanced Implementations
+- **OOP Architecture for WebSocket Server**:
+  - Object-Oriented design structuring room state into `Room` and `Participant` classes.
+  - Modular handler architecture (`BaseMessageHandler`, `RoomMessageHandler`, `PlaybackMessageHandler`, `ChatMessageHandler`) encapsulating validation, permissions, and broadcast logic.
+- **Horizontal Scalability & Redis Pub/Sub**:
+  - Scalability architecture with Redis Pub/Sub support (`redisAdapter.js`) using `@socket.io/redis-adapter` for clustering multiple WebSocket server instances behind a load balancer.
+- **Persistent Rooms (File-Based & SQLite Database)**:
+  - SQLite persistence layer (`SqliteRoomStore` via Node.js native `DatabaseSync`) and file-based persistence (`PersistentRoomStore`) to persist rooms, participants, and playback state across server restarts.
+- **User Authentication**:
+  - Full authentication system with registration, login, secure `scrypt` password hashing, signed auth tokens, and guest session fallback (`POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/guest`, `GET /api/auth/me`).
+- **In-Room Live Text Chat**:
+  - Side rail tab with real-time text chat, message history, timestamps, and participant tags.
+- **Floating Emoji Reactions**:
+  - Real-time emoji reaction picker (❤️, 🔥, 😂, 👏, 😮, 🎉) with animated floating overlays across the screen.
+- **Host Transfer**:
+  - The host can transfer full host privileges to any participant or moderator with an explicit confirmation dialog.
 
 ---
 
 ## 3. Technology Stack
 
 ### Frontend
-- **React 19**
-- **Vite 8**
+- **React 19** + **Vite 8**
 - **JavaScript (ES Modules)**
 - **React Router 7**
-- **Plain CSS / CSS Tokens** (clean, zero-dependency token-based design system with semantic dark mode)
-- **Lucide React** (modern iconography)
-- **YouTube IFrame Player API** (official script wrapper with decoupled controller)
+- **Plain CSS / CSS Tokens** (zero-dependency design system, accessible dark mode)
+- **Lucide React** (modern icons)
+- **YouTube IFrame Player API** (encapsulated controller wrapper)
 
 ### Backend
 - **Node.js (v18+)**
-- **Express.js** (HTTP API & health check endpoints)
-- **Socket.IO** (Bidirectional real-time event engine with token-bucket rate limiting)
-
-### Persistence
-- **In-Memory Store (`RoomStore`)**: CSPRNG room code generation, encapsulated in a repository interface so MongoDB or Redis can be swapped in without modifying room or playback business logic.
+- **Express.js** (HTTP API, Auth endpoints, and health checks)
+- **Socket.IO** (Bidirectional real-time engine)
+- **SQLite (`node:sqlite`)** & JSON file store for room persistence
+- **Crypto (`node:crypto`)** for scrypt password hashing and HMAC auth tokens
+- **Redis Pub/Sub Adapter support** for horizontal scaling
 
 ### Testing
-- **Vitest & React Testing Library**: Component rendering, drift algorithm unit tests, formatters, and YouTube URL parsing.
-- **Node.js Built-in Test Runner (`node:test`)**: Backend unit tests, RBAC assertion suites, and full in-process Socket.IO integration tests.
+- **Vitest & React Testing Library**: 36 frontend tests passing.
+- **Node.js Test Runner (`node:test`)**: 37 backend tests passing.
 
 ---
 
@@ -283,21 +302,21 @@ Security is strictly server-side:
 
 ## 13. Testing Instructions
 
-### Backend Test Suite (31 Tests)
-Runs unit tests for `RoomService`, validation helpers, and full Socket.IO client-server integration tests:
+### Backend Test Suite (37 Tests)
+Runs unit tests for OOP room & participant models, auth service with scrypt hashing, SQLite persistence, chat & reactions, `RoomService`, validation helpers, and full Socket.IO client-server integration tests:
 ```bash
 cd server
 npm test
 ```
-*Result: 31 passed, 0 failed.*
+*Result: 37 passed, 0 failed.*
 
-### Frontend Test Suite (29 Tests)
-Runs Vitest for synchronization logic, drift calculations, formatters, and React component tests:
+### Frontend Test Suite (36 Tests)
+Runs Vitest for synchronization logic, drift calculations, formatters, playback controls, player stage, and chat panel:
 ```bash
 cd client
 npm test
 ```
-*Result: 29 passed, 0 failed.*
+*Result: 36 passed, 0 failed.*
 
 ### Production Build Validation
 ```bash

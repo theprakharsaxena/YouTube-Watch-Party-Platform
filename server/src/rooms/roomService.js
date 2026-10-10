@@ -248,6 +248,66 @@ export class RoomService extends EventEmitter {
     return { room, actor, reaction };
   }
 
+  // ---------- Change Requests (Approval Workflow) ----------
+
+  requestChange(identity, { type, payload }) {
+    const { room, participant: actor } = this.requireMember(identity);
+    if (!type || !payload) {
+      throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Invalid change request.');
+    }
+    if (type === 'change_video') {
+      const videoId = parseRequiredVideo(payload.videoUrl);
+      payload = { videoUrl: payload.videoUrl, videoId };
+    } else {
+      throw new AppError(ErrorCodes.INVALID_PAYLOAD, 'Unsupported change request type.');
+    }
+
+    const request = typeof room.addChangeRequest === 'function'
+      ? room.addChangeRequest({
+          requesterId: actor.id,
+          requesterName: actor.name,
+          requesterRole: actor.role,
+          type,
+          payload,
+          now: this.now(),
+        })
+      : {
+          id: 'req_' + Math.random().toString(36).slice(2, 9),
+          requesterId: actor.id,
+          requesterName: actor.name,
+          requesterRole: actor.role,
+          type,
+          payload,
+          createdAt: this.now(),
+        };
+
+    return { room, actor, request };
+  }
+
+  respondChangeRequest(identity, { requestId, approved }) {
+    const { room, participant: actor } = this.requireMember(identity);
+    // Only host or moderator can approve/decline change requests
+    assertCan(actor, Actions.CHANGE_VIDEO);
+
+    const request = typeof room.getChangeRequest === 'function' ? room.getChangeRequest(requestId) : null;
+    if (!request) {
+      throw new AppError(ErrorCodes.TARGET_NOT_FOUND, 'Change request not found or already resolved.');
+    }
+
+    if (typeof room.removeChangeRequest === 'function') {
+      room.removeChangeRequest(requestId);
+    }
+
+    let actionResult = null;
+    if (approved) {
+      if (request.type === 'change_video') {
+        actionResult = this.changeVideo(identity, request.payload.videoUrl);
+      }
+    }
+
+    return { room, actor, request, approved: Boolean(approved), actionResult };
+  }
+
   // ---------- Snapshot ----------
 
   /** Client-safe view of a room. Never includes tokens or socket ids. */
@@ -268,6 +328,7 @@ export class RoomService extends EventEmitter {
         revision: room.playback.revision,
       },
       chat: typeof room.getRecentChat === 'function' ? room.getRecentChat(40) : [],
+      pendingRequests: typeof room.listPendingRequests === 'function' ? room.listPendingRequests() : [],
       serverTime: this.now(),
     };
   }

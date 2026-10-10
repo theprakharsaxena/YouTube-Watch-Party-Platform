@@ -4,6 +4,9 @@ import { RoomService } from '../src/rooms/roomService.js';
 import { Room } from '../src/rooms/Room.js';
 import { Participant } from '../src/rooms/Participant.js';
 import { PersistentRoomStore } from '../src/rooms/persistentRoomStore.js';
+import { SqliteRoomStore } from '../src/rooms/sqliteRoomStore.js';
+import { AuthService } from '../src/auth/authService.js';
+import { Roles } from '../src/auth/permissions.js';
 import { loadConfig } from '../src/config/index.js';
 
 describe('OOP Classes & Chat / Reactions', () => {
@@ -55,17 +58,79 @@ describe('OOP Classes & Chat / Reactions', () => {
     assert.throws(() => service.recordReaction(id(host, 's-alice'), 'invalid'), { code: 'INVALID_PAYLOAD' });
   });
 
-  test('PersistentRoomStore serializes and restores rooms', () => {
-    const store = new PersistentRoomStore({ filePath: '/tmp/test_sidelight_rooms.json' });
-    const r = new Room({ id: 'TESTROOM12', createdAt: 12345 });
-    const p = new Participant({ id: 'p1', name: 'Bob', role: 'host' });
-    r.addParticipant(p);
-    r.setHost('p1');
-    store.set(r);
+  test('Participant change request approval workflow', () => {
+    const { participant: guest } = service.joinRoom({
+      roomId: room.id,
+      displayName: 'Bob',
+      socketId: 's-bob',
+    });
 
-    const retrieved = store.get('TESTROOM12');
-    assert.equal(retrieved.id, 'TESTROOM12');
-    assert.equal(retrieved.hostId, 'p1');
-    assert.equal(retrieved.participants.get('p1').name, 'Bob');
+    // Bob (participant) requests to change video
+    const { request } = service.requestChange(id(guest, 's-bob'), {
+      type: 'change_video',
+      payload: { videoUrl: 'https://youtu.be/jNQXAC9IJRE' },
+    });
+    assert.equal(request.requesterName, 'Bob');
+    assert.equal(request.type, 'change_video');
+
+    // Snapshot contains pending request
+    let snap = service.snapshot(room);
+    assert.equal(snap.pendingRequests.length, 1);
+    assert.equal(snap.pendingRequests[0].id, request.id);
+
+    // Non-host/mod cannot approve request
+    assert.throws(
+      () => service.respondChangeRequest(id(guest, 's-bob'), { requestId: request.id, approved: true }),
+      { code: 'FORBIDDEN' },
+    );
+
+    // Host approves request -> video changes!
+    const { approved, actionResult } = service.respondChangeRequest(id(host, 's-alice'), {
+      requestId: request.id,
+      approved: true,
+    });
+    assert.ok(approved);
+    assert.equal(actionResult.action.videoId, 'jNQXAC9IJRE');
+
+    // Room video is now updated
+    assert.equal(room.playback.videoId, 'jNQXAC9IJRE');
+    snap = service.snapshot(room);
+    assert.equal(snap.pendingRequests.length, 0);
+  });
+
+  test('AuthService registers, logs in, hashes password and verifies token', () => {
+    const auth = new AuthService({ filePath: `/tmp/test_users_${Date.now()}_${Math.random()}.json` });
+    const reg = auth.register({ username: 'prakhar', password: 'secretpassword123' });
+    assert.equal(reg.user.username, 'prakhar');
+    assert.ok(reg.token);
+
+    const login = auth.login({ username: 'prakhar', password: 'secretpassword123' });
+    assert.equal(login.user.username, 'prakhar');
+
+    assert.throws(() => auth.login({ username: 'prakhar', password: 'wrong' }), { code: 'NOT_IN_ROOM' });
+
+    const verified = auth.verifyToken(login.token);
+    assert.equal(verified.username, 'prakhar');
+  });
+
+  test('PersistentRoomStore and SqliteRoomStore serialize and restore rooms', () => {
+    const jsonStore = new PersistentRoomStore({ filePath: '/tmp/test_sidelight_rooms.json' });
+    const sqliteStore = new SqliteRoomStore({ dbPath: '/tmp/test_sidelight.db' });
+
+    for (const store of [jsonStore, sqliteStore]) {
+      const r = new Room({ id: 'ROOM123456', createdAt: 12345 });
+      const p1 = new Participant({ id: 'p1', name: 'Bob', role: Roles.HOST });
+      const p2 = new Participant({ id: 'p2', name: 'Charlie', role: Roles.VIEWER });
+      r.addParticipant(p1);
+      r.addParticipant(p2);
+      r.setHost('p1');
+      store.set(r);
+
+      const retrieved = store.get('ROOM123456');
+      assert.equal(retrieved.id, 'ROOM123456');
+      assert.equal(retrieved.hostId, 'p1');
+      assert.equal(retrieved.participants.get('p1').name, 'Bob');
+      assert.equal(retrieved.participants.get('p2').role, Roles.VIEWER);
+    }
   });
 });

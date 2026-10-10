@@ -32,4 +32,4 @@ export function initials(name = '') {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export const ROLE_LABELS = { host: 'Host', moderator: 'Moderator', participant: 'Participant' };
+export const ROLE_LABELS = { host: 'Host', moderator: 'Moderator', participant: 'Participant', viewer: 'Viewer' };

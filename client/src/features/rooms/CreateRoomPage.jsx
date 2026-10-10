@@ -5,13 +5,15 @@ import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
 import { useRoom } from '../../hooks/useRoom.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { validateVideoInput } from '../../utils/youtube.js';
 import { validateDisplayName, DISPLAY_NAME_MAX } from './validation.js';
 
 export default function CreateRoomPage() {
   const navigate = useNavigate();
   const { createRoom } = useRoom();
-  const [name, setName] = useState('');
+  const { user } = useAuth();
+  const [name, setName] = useState(user?.username || '');
   const [videoUrl, setVideoUrl] = useState('');
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');

@@ -94,7 +94,7 @@ export function parsePosition(value, maxSeconds) {
 }
 
 export function parseAssignableRole(value) {
-  if (![Roles.HOST, Roles.MODERATOR, Roles.PARTICIPANT].includes(value)) {
+  if (![Roles.HOST, Roles.MODERATOR, Roles.PARTICIPANT, Roles.VIEWER].includes(value)) {
     throw new AppError(ErrorCodes.INVALID_ROLE, 'Unknown role.');
   }
   return value;

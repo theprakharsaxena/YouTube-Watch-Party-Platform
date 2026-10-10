@@ -28,6 +28,7 @@ export class Room {
     };
     this.chatMessages = Array.isArray(chatMessages) ? chatMessages : [];
     this.maxChatHistory = 100;
+    this.pendingRequests = new Map();
   }
 
   // ---------- Participants ----------
@@ -130,6 +131,35 @@ export class Room {
     return this.chatMessages.slice(-limit);
   }
 
+  // ---------- Change Requests (Approval Workflow) ----------
+
+  addChangeRequest({ requesterId, requesterName, requesterRole, type, payload, now = Date.now() }) {
+    const requestId = 'req_' + Math.random().toString(36).slice(2, 9);
+    const request = {
+      id: requestId,
+      requesterId,
+      requesterName,
+      requesterRole,
+      type,
+      payload,
+      createdAt: now,
+    };
+    this.pendingRequests.set(requestId, request);
+    return request;
+  }
+
+  getChangeRequest(requestId) {
+    return this.pendingRequests.get(requestId);
+  }
+
+  removeChangeRequest(requestId) {
+    return this.pendingRequests.delete(requestId);
+  }
+
+  listPendingRequests() {
+    return Array.from(this.pendingRequests.values());
+  }
+
   // ---------- Snapshots & Serialization ----------
 
   toSnapshot(now = Date.now()) {
@@ -149,6 +179,7 @@ export class Room {
       },
       participants: this.listPublicParticipants(),
       chat: this.getRecentChat(30),
+      pendingRequests: this.listPendingRequests(),
     };
   }
 
@@ -161,6 +192,7 @@ export class Room {
       removedTokens: Array.from(this.removedTokens),
       playback: this.playback,
       chatMessages: this.chatMessages,
+      pendingRequests: this.listPendingRequests(),
     };
   }
 
