@@ -58,8 +58,9 @@ function hslToRgb(h, s, l) {
 
 export function enhanceColor(r, g, b) {
   const [h, s, l] = rgbToHsl(r, g, b);
-  const boostedS = s > 0.05 ? Math.min(1, s * 1.35) : s;
-  const clampedL = Math.max(0.28, Math.min(0.66, l));
+  // Soft, slightly dimmed saturation and luminance for subtle ambient lighting
+  const boostedS = s > 0.05 ? Math.min(0.85, s * 1.1) : s;
+  const clampedL = Math.max(0.22, Math.min(0.52, l * 0.92));
   return hslToRgb(h, boostedS, clampedL);
 }
 

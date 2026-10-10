@@ -3,10 +3,12 @@ import { enhanceColor, extractColorsFromImage } from './useAmbientLighting.js';
 
 describe('useAmbientLighting color utilities', () => {
   it('enhances color saturation while keeping luminance balanced', () => {
-    // Pure green
+    // Pure green (dimmed slightly for subtle ambient glow)
     const green = enhanceColor(0, 180, 0);
-    expect(green[1]).toBeGreaterThanOrEqual(180);
+    expect(green[1]).toBeGreaterThanOrEqual(130);
     expect(green[0]).toBeLessThanOrEqual(50);
+    expect(green[1]).toBeGreaterThan(green[0]);
+    expect(green[1]).toBeGreaterThan(green[2]);
 
     // Deep blue
     const blue = enhanceColor(20, 40, 160);
