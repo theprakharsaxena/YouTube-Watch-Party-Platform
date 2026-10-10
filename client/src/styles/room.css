@@ -105,19 +105,19 @@
 /* ---------- Ambient lighting effect (YouTube style) ---------- */
 .stage__ambient {
   position: absolute;
-  inset: -6px -10px -12px -10px;
+  inset: -3px -6px -8px -6px;
   z-index: 0;
   pointer-events: none;
   overflow: visible;
-  border-radius: calc(var(--radius-lg) + 8px);
-  opacity: 0.28;
+  border-radius: calc(var(--radius-lg) + 4px);
+  opacity: 0.20;
   transform: translateZ(0);
   transition: opacity 0.8s ease;
   will-change: transform, opacity;
 }
 
 .stage__ambient--playing {
-  opacity: 0.62;
+  opacity: 0.46;
 }
 
 .stage__ambient-art {
@@ -126,10 +126,10 @@
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  filter: blur(28px) saturate(145%) brightness(0.92);
-  transform: scale(1.04);
+  filter: blur(18px) saturate(130%) brightness(0.85);
+  transform: scale(1.02);
   border-radius: inherit;
-  opacity: 0.50;
+  opacity: 0.38;
   transition: opacity 0.8s ease, filter 0.8s ease;
 }
 
@@ -140,16 +140,16 @@
 /* Dynamic color mesh powered entirely by extracted video colors */
 .stage__ambient-mesh {
   position: absolute;
-  inset: -4%;
+  inset: -2%;
   background:
     radial-gradient(circle at 18% 25%, var(--ambient-tl, transparent) 0%, transparent 60%),
     radial-gradient(circle at 82% 25%, var(--ambient-tr, transparent) 0%, transparent 60%),
     radial-gradient(circle at 18% 78%, var(--ambient-bl, transparent) 0%, transparent 60%),
     radial-gradient(circle at 82% 78%, var(--ambient-br, transparent) 0%, transparent 60%),
     radial-gradient(circle at 50% 50%, var(--ambient-c, transparent) 0%, transparent 68%);
-  filter: blur(26px);
+  filter: blur(18px);
   mix-blend-mode: screen;
-  opacity: 0.42;
+  opacity: 0.30;
   border-radius: inherit;
   transition: opacity 0.8s ease, background 0.8s ease;
 }
@@ -161,16 +161,16 @@
 /* Real-time synchronized live ambient video layer */
 .stage__ambient-video {
   position: absolute;
-  top: -4%;
-  left: -3%;
-  width: 106%;
-  height: 108%;
+  top: -2.5%;
+  left: -2%;
+  width: 104%;
+  height: 105%;
   pointer-events: none;
   overflow: hidden;
-  filter: blur(28px) saturate(145%) brightness(0.95);
-  border-radius: calc(var(--radius-lg) + 10px);
+  filter: blur(18px) saturate(130%) brightness(0.88);
+  border-radius: calc(var(--radius-lg) + 6px);
   transform: translateZ(0);
-  opacity: 0.68;
+  opacity: 0.52;
   transition: opacity 0.5s ease;
 }
 
@@ -185,39 +185,39 @@
 }
 
 .stage__ambient--playing .stage__ambient-video {
-  opacity: 0.78;
+  opacity: 0.60;
 }
 
 @keyframes ambientBreathe {
   0% {
-    transform: scale(1.01) translateY(0);
-    opacity: 0.45;
-    filter: blur(24px) saturate(135%) brightness(0.88);
+    transform: scale(1.005) translateY(0);
+    opacity: 0.34;
+    filter: blur(16px) saturate(125%) brightness(0.82);
   }
   50% {
-    transform: scale(1.04) translateY(-3px);
-    opacity: 0.62;
-    filter: blur(30px) saturate(155%) brightness(0.96);
+    transform: scale(1.02) translateY(-2px);
+    opacity: 0.46;
+    filter: blur(20px) saturate(135%) brightness(0.90);
   }
   100% {
-    transform: scale(1.02) translateY(2px);
-    opacity: 0.50;
-    filter: blur(26px) saturate(140%) brightness(0.90);
+    transform: scale(1.01) translateY(1px);
+    opacity: 0.36;
+    filter: blur(18px) saturate(130%) brightness(0.85);
   }
 }
 
 @keyframes ambientAurora {
   0% {
     transform: rotate(0deg) scale(1);
-    opacity: 0.32;
+    opacity: 0.22;
   }
   50% {
-    transform: rotate(1.5deg) scale(1.03);
-    opacity: 0.48;
+    transform: rotate(1deg) scale(1.015);
+    opacity: 0.34;
   }
   100% {
-    transform: rotate(-1.5deg) scale(1.01);
-    opacity: 0.36;
+    transform: rotate(-1deg) scale(1.008);
+    opacity: 0.25;
   }
 }
 
