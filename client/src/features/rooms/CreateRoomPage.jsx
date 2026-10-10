@@ -6,6 +6,7 @@ import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
 import { useRoom } from '../../hooks/useRoom.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { formatRoomCode } from '../../utils/formatters.js';
 import { validateVideoInput } from '../../utils/youtube.js';
 import { validateDisplayName, DISPLAY_NAME_MAX } from './validation.js';
 
@@ -29,7 +30,7 @@ export default function CreateRoomPage() {
     setBusy(true);
     try {
       const { roomId } = await createRoom({ displayName: name.trim(), videoUrl: videoUrl.trim() });
-      navigate(`/r/${roomId}`, { replace: true });
+      navigate(`/r/${formatRoomCode(roomId)}`, { replace: true });
     } catch (error) {
       setSubmitError(error.message || 'Could not create the room.');
       setBusy(false);

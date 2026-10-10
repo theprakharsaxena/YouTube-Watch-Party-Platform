@@ -5,7 +5,7 @@ import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
 import { fetchRoomInfo } from '../../services/api.js';
-import { parseRoomInput } from '../../utils/formatters.js';
+import { formatRoomCode, parseRoomInput } from '../../utils/formatters.js';
 
 /** Step 1 of joining: paste a code or invite link; we verify the room exists before moving on. */
 export default function JoinRoomPage() {
@@ -25,7 +25,7 @@ export default function JoinRoomPage() {
     setBusy(true);
     try {
       await fetchRoomInfo(code);
-      navigate(`/r/${code}`);
+      navigate(`/r/${formatRoomCode(code)}`);
     } catch (e) {
       setError(e.message);
       setBusy(false);
