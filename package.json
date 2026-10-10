@@ -1,0 +1,16 @@
+{
+  "name": "youtube-watch-party-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sidelight - Real-Time YouTube Watch Party Platform",
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "npm --prefix server start & npm --prefix client run dev",
+    "start": "npm --prefix server start",
+    "build": "npm --prefix client run build",
+    "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "test": "npm --prefix server test && npm --prefix client test"
+  }
+}
