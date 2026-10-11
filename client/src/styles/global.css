@@ -246,11 +246,19 @@ button, input { font: inherit; color: inherit; }
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
-  background: rgba(5, 8, 16, 0.72);
-  display: grid;
-  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 10000;
+  background: rgba(5, 8, 16, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
   animation: overlayFade var(--t-fast) var(--ease);
 }
 @keyframes overlayFade {
@@ -260,19 +268,20 @@ button, input { font: inherit; color: inherit; }
 
 .dialog {
   position: relative;
-  margin: 0;
+  margin: auto;
   padding: 0;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   background: var(--ink-850);
   color: var(--ivory);
-  width: min(460px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
+  width: min(460px, calc(100vw - 32px));
+  max-height: min(90vh, calc(100dvh - 32px));
   box-shadow: var(--shadow-pop);
   animation: pop var(--t-med) var(--ease);
   overflow-y: auto;
+  box-sizing: border-box;
 }
-.dialog::backdrop { background: rgba(5, 8, 16, 0.72); }
+.dialog::backdrop { background: rgba(5, 8, 16, 0.75); }
 .dialog[open] { animation: pop var(--t-med) var(--ease); }
 @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.985); } }
 .dialog__panel { padding: 22px; display: grid; gap: 14px; }

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export default function Dialog({ open, onClose, title, description, children, footer, labelledBy = 'dialog-title' }) {
@@ -28,9 +29,9 @@ export default function Dialog({ open, onClose, title, description, children, fo
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div
       className="dialog-overlay"
       onMouseDown={(event) => {
@@ -56,7 +57,8 @@ export default function Dialog({ open, onClose, title, description, children, fo
           {footer && <footer className="dialog__footer">{footer}</footer>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
