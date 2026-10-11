@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DoorClosed, Eye, LogIn, SearchX, UserCheck, UserX } from 'lucide-react';
+import { Crown, DoorClosed, Eye, LogIn, SearchX, UserCheck, UserX } from 'lucide-react';
 import FormShell from '../../components/FormShell.jsx';
 import Field from '../../components/Field.jsx';
 import Button from '../../components/Button.jsx';
@@ -166,11 +166,22 @@ export default function RoomPage() {
   }
 
   const count = lookup.info?.participantCount ?? 0;
+  const isHost = Boolean(
+    isAuthenticated &&
+    user &&
+    (
+      lookup.info?.isHost ||
+      (lookup.info?.hostUserId && lookup.info.hostUserId === user.id) ||
+      (lookup.info?.creatorUserId && lookup.info.creatorUserId === user.id) ||
+      (lookup.info?.hostName && (lookup.info.hostName || '').trim().toLowerCase() === (user.displayName || '').trim().toLowerCase()) ||
+      (code && localStorage.getItem(`sidelight:host_room:${code}`) === 'true')
+    )
+  );
 
   return (
     <>
       <FormShell
-        title="Join the watch party"
+        title={isHost ? 'Return to your watch party' : 'Join the watch party'}
         lead={`Room ${formatRoomCode(code)} · ${count} ${count === 1 ? 'person' : 'people'} inside`}
       >
         {isAuthenticated ? (
@@ -178,18 +189,22 @@ export default function RoomPage() {
             <div
               className="form-alert"
               style={{
-                background: 'rgba(144, 205, 171, 0.1)',
-                borderColor: 'rgba(144, 205, 171, 0.35)',
-                color: 'var(--sage)',
+                background: isHost ? 'rgba(235, 179, 56, 0.12)' : 'rgba(144, 205, 171, 0.1)',
+                borderColor: isHost ? 'rgba(235, 179, 56, 0.4)' : 'rgba(144, 205, 171, 0.35)',
+                color: isHost ? 'var(--amber)' : 'var(--sage)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontSize: '0.9rem',
               }}
             >
-              <UserCheck size={16} aria-hidden="true" />
+              {isHost ? (
+                <Crown size={16} aria-hidden="true" style={{ color: 'var(--amber)', flexShrink: 0 }} />
+              ) : (
+                <UserCheck size={16} aria-hidden="true" style={{ color: 'var(--sage)', flexShrink: 0 }} />
+              )}
               <span>
-                Logged in as <strong>{user?.displayName}</strong> (Participant)
+                Logged in as <strong>{user?.displayName}</strong> ({isHost ? 'Host' : 'Participant'})
               </span>
             </div>
             {nameError && (
@@ -197,8 +212,16 @@ export default function RoomPage() {
                 {nameError}
               </p>
             )}
-            <Button type="submit" variant="primary" size="lg" icon={LogIn} loading={joining}>
-              {joining ? 'Joining…' : 'Join room as Participant'}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              icon={isHost ? Crown : LogIn}
+              loading={joining}
+            >
+              {joining
+                ? (isHost ? 'Rejoining as Host…' : 'Joining…')
+                : (isHost ? 'Rejoin room as Host' : 'Join room as Participant')}
             </Button>
           </form>
         ) : (

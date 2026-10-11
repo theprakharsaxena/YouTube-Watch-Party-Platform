@@ -306,12 +306,28 @@ export function createApp({ config, roomService, authService = new AuthService()
     res.json({ user });
   });
 
-  // Lets the join screen validate a code before opening a socket. Reveals only existence/size.
+  // Lets the join screen validate a code before opening a socket. Reveals existence/size and host info.
   app.get('/api/rooms/:roomId', (req, res) => {
     try {
       const roomId = normalizeRoomId(req.params.roomId);
       const info = roomService.describePublic(roomId);
       if (!info) return res.status(404).json({ code: 'ROOM_NOT_FOUND', message: 'This room does not exist or has ended.' });
+
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      if (token) {
+        try {
+          const user = authService.verifyToken(token);
+          if (user?.id) {
+            const isHost = (info.hostUserId && info.hostUserId === user.id) ||
+                           (info.creatorUserId && info.creatorUserId === user.id);
+            info.isHost = Boolean(isHost);
+          }
+        } catch {
+          // Ignore invalid auth token
+        }
+      }
+
       return res.json(info);
     } catch (error) {
       if (error instanceof AppError) return res.status(400).json({ code: error.code, message: error.message });

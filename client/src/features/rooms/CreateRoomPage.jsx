@@ -48,6 +48,12 @@ export default function CreateRoomPage() {
     setBusy(true);
     try {
       const { roomId } = await createRoom({ displayName: effectiveName, videoUrl: videoUrl.trim() });
+      try {
+        localStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
+        sessionStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
+      } catch {
+        /* storage unavailable */
+      }
       navigate(`/r/${formatRoomCode(roomId)}`, { replace: true });
     } catch (error) {
       const isAuthError = error.code === 'UNAUTHORIZED' || error.code === 'ACCOUNT_REQUIRED';

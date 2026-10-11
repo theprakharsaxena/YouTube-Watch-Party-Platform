@@ -9,6 +9,7 @@ export class Room {
     id,
     createdAt = Date.now(),
     hostId = null,
+    creatorUserId = null,
     participants = new Map(),
     removedTokens = new Set(),
     removedUserIds = new Set(),
@@ -18,6 +19,7 @@ export class Room {
     this.id = id;
     this.createdAt = createdAt;
     this.hostId = hostId;
+    this.creatorUserId = creatorUserId;
     this.participants = participants instanceof Map ? participants : new Map();
     this.removedTokens = removedTokens instanceof Set ? removedTokens : new Set(removedTokens);
     this.removedUserIds = removedUserIds instanceof Set ? removedUserIds : new Set(removedUserIds);
@@ -190,6 +192,7 @@ export class Room {
       id: this.id,
       createdAt: this.createdAt,
       hostId: this.hostId,
+      creatorUserId: this.creatorUserId,
       participants: Array.from(this.participants.values()).map((p) => p.toJSON()),
       removedTokens: Array.from(this.removedTokens),
       removedUserIds: Array.from(this.removedUserIds),
@@ -211,6 +214,7 @@ export class Room {
       id: data.id,
       createdAt: data.createdAt,
       hostId: data.hostId,
+      creatorUserId: data.creatorUserId ?? null,
       participants,
       removedTokens: new Set(data.removedTokens || []),
       removedUserIds: new Set(data.removedUserIds || []),

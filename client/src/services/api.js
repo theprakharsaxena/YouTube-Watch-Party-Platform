@@ -7,7 +7,15 @@ export const SERVER_URL = (import.meta.env.VITE_SERVER_URL || '').replace(/\/$/,
 export async function fetchRoomInfo(roomId, { signal } = {}) {
   let response;
   try {
-    response = await fetch(`${SERVER_URL}/api/rooms/${encodeURIComponent(roomId)}`, { signal });
+    const headers = {};
+    const token = localStorage.getItem('sidelight_auth_token');
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    response = await fetch(`${SERVER_URL}/api/rooms/${encodeURIComponent(roomId)}`, {
+      headers,
+      signal,
+    });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
     throw { code: 'NETWORK', message: 'Could not reach the Sidelight server. Check your connection and try again.' };

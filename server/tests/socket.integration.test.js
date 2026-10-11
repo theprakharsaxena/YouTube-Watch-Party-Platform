@@ -131,7 +131,10 @@ describe('socket integration', () => {
     const { created } = await setupRoom();
     assert.equal((await fetch(`${url}/health`)).status, 200);
     const found = await fetch(`${url}/api/rooms/${created.roomId}`);
-    assert.equal((await found.json()).participantCount, 2);
+    const data = await found.json();
+    assert.equal(data.participantCount, 2);
+    assert.equal(data.hostName, 'Host');
+    assert.equal(Boolean(data.hostId), true);
     assert.equal((await fetch(`${url}/api/rooms/ZZZZZZZZZZ`)).status, 404);
     assert.equal((await fetch(`${url}/api/rooms/bad`)).status, 400);
   });

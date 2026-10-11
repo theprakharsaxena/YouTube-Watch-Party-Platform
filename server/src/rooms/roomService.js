@@ -48,6 +48,7 @@ export class RoomService extends EventEmitter {
       id: this.store.generateUniqueId(),
       createdAt: this.now(),
       hostId: null,
+      creatorUserId: user?.id ?? null,
       playback: { videoId, status: 'paused', position: 0, updatedAt: this.now(), revision: 0 },
     });
     // The creator's role is assigned here, never taken from the payload.
@@ -371,7 +372,16 @@ export class RoomService extends EventEmitter {
   describePublic(roomId) {
     const room = this.store.get(roomId);
     if (!room) return null;
-    return { exists: true, participantCount: room.participants.size, hasVideo: Boolean(room.playback.videoId) };
+    const host = room.participants.get(room.hostId);
+    return {
+      exists: true,
+      participantCount: room.participants.size,
+      hasVideo: Boolean(room.playback?.videoId),
+      hostId: room.hostId,
+      hostUserId: host?.userId ?? room.creatorUserId ?? null,
+      hostName: host?.name ?? null,
+      creatorUserId: room.creatorUserId ?? null,
+    };
   }
 
   shutdown() {
