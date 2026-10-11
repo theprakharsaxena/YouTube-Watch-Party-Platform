@@ -8,7 +8,7 @@ export async function fetchRoomInfo(roomId, { signal } = {}) {
   let response;
   try {
     const headers = {};
-    const token = localStorage.getItem('sidelight_auth_token');
+    const token = localStorage.getItem('watchalong_auth_token') || localStorage.getItem('sidelight_auth_token');
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
@@ -18,7 +18,7 @@ export async function fetchRoomInfo(roomId, { signal } = {}) {
     });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
-    throw { code: 'NETWORK', message: 'Could not reach the Sidelight server. Check your connection and try again.' };
+    throw { code: 'NETWORK', message: 'Could not reach the WatchAlong server. Check your connection and try again.' };
   }
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {

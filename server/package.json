@@ -1,9 +1,9 @@
 {
-  "name": "sidelight-server",
+  "name": "watchalong-server",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Sidelight realtime watch-party backend (Express + Socket.IO)",
+  "description": "WatchAlong realtime watch-party backend (Express + Socket.IO)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

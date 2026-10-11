@@ -3,20 +3,24 @@ import { getSocket } from '../services/socket.js';
 import { SERVER_URL } from '../services/api.js';
 
 const AuthContext = createContext(null);
-const TOKEN_KEY = 'sidelight_auth_token';
-const USER_KEY = 'sidelight_auth_user';
+const TOKEN_KEY = 'watchalong_auth_token';
+const USER_KEY = 'watchalong_auth_user';
+const LEGACY_TOKEN_KEY = 'sidelight_auth_token';
+const LEGACY_USER_KEY = 'sidelight_auth_user';
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY));
   const [user, setUser] = useState(() => {
     try {
-      const raw = localStorage.getItem(USER_KEY);
+      const raw = localStorage.getItem(USER_KEY) || localStorage.getItem(LEGACY_USER_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       // Clean out legacy username-only records
       if (parsed && !parsed.displayName && parsed.username) {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(LEGACY_USER_KEY);
+        localStorage.removeItem(LEGACY_TOKEN_KEY);
         return null;
       }
       return parsed;
@@ -57,10 +61,18 @@ export function AuthProvider({ children }) {
   const saveAuth = (tokenVal, userVal) => {
     setToken(tokenVal);
     setUser(userVal);
-    if (tokenVal) localStorage.setItem(TOKEN_KEY, tokenVal);
-    else localStorage.removeItem(TOKEN_KEY);
-    if (userVal) localStorage.setItem(USER_KEY, JSON.stringify(userVal));
-    else localStorage.removeItem(USER_KEY);
+    if (tokenVal) {
+      localStorage.setItem(TOKEN_KEY, tokenVal);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
+    }
+    if (userVal) {
+      localStorage.setItem(USER_KEY, JSON.stringify(userVal));
+    } else {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(LEGACY_USER_KEY);
+    }
     try {
       const sock = getSocket();
       sock.auth = { token: tokenVal || undefined };

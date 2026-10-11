@@ -423,7 +423,7 @@ export default function InteractiveRoomPreview() {
   const progressPercent = totalDuration > 0 ? ((displayTime / totalDuration) * 100).toFixed(1) : '0.0';
 
   return (
-    <figure className="preview" aria-label="Interactive demonstration of a Sidelight watch room">
+    <figure className="preview" aria-label="Interactive demonstration of a WatchAlong watch room">
       <div
         ref={windowRef}
         className="preview__window preview__window--interactive"

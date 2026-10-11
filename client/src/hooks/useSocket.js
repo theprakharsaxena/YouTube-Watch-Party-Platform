@@ -37,7 +37,7 @@ export function useSocket() {
         }
         const fail = () => {
           cleanup();
-          reject({ code: 'NETWORK', message: 'Could not reach the Sidelight server. Check your connection and try again.' });
+          reject({ code: 'NETWORK', message: 'Could not reach the WatchAlong server. Check your connection and try again.' });
         };
         const timer = setTimeout(fail, CONNECT_TIMEOUT_MS);
         const succeed = () => {
@@ -52,7 +52,7 @@ export function useSocket() {
             errData?.message ||
             (err?.message === 'UNAUTHORIZED'
               ? 'Please log in to continue.'
-              : err?.message || 'Could not reach the Sidelight server. Check your connection and try again.');
+              : err?.message || 'Could not reach the WatchAlong server. Check your connection and try again.');
           reject({ code, message });
         };
         function cleanup() {

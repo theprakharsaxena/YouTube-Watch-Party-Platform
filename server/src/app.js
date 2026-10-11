@@ -26,7 +26,7 @@ export function createApp({ config, roomService, authService = new AuthService()
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sidelight Server · Real-Time Watch Party Backend</title>
+  <title>WatchAlong Server · Real-Time Watch Party Backend</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -197,7 +197,7 @@ export function createApp({ config, roomService, authService = new AuthService()
         </svg>
       </div>
       <div class="title-group">
-        <h1>Sidelight Server</h1>
+        <h1>WatchAlong Server</h1>
         <p>Real-Time Watch Party Backend · Node.js & Socket.IO</p>
       </div>
     </div>
@@ -239,7 +239,7 @@ export function createApp({ config, roomService, authService = new AuthService()
     </div>
 
     <div class="footer">
-      <span>Sidelight Watch Party Platform</span>
+      <span>WatchAlong Watch Party Platform</span>
       <span>v1.0.0</span>
     </div>
   </div>
@@ -249,7 +249,7 @@ export function createApp({ config, roomService, authService = new AuthService()
     }
 
     res.json({
-      name: 'Sidelight Real-Time Watch Party Server',
+      name: 'WatchAlong Real-Time Watch Party Server',
       status: 'ok',
       version: '1.0.0',
       uptimeSeconds: Math.round(process.uptime()),

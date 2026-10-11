@@ -1,6 +1,6 @@
-# Sidelight — System Architecture
+# WatchAlong — System Architecture
 
-This document describes the architectural design, synchronization model, security boundaries, and lifecycle management of Sidelight.
+This document describes the architectural design, synchronization model, security boundaries, and lifecycle management of WatchAlong.
 
 ---
 
@@ -15,7 +15,7 @@ flowchart TD
         Sock_A["Socket.IO Client"]
     end
 
-    subgraph Backend["Sidelight Backend (Node.js + Express + Socket.IO)"]
+    subgraph Backend["WatchAlong Backend (Node.js + Express + Socket.IO)"]
         Server["HTTP / WebSocket Server"]
         AuthGate["Session & RBAC Gate (permissions.js)"]
         Service["RoomService & RoomStore"]
@@ -80,7 +80,7 @@ Direct peer-to-peer playback control suffers from three fatal problems:
 2. **Network Jitter**: Packets arriving at slightly different times cause players to start at mismatched moments.
 3. **Buffering Differences**: One client might buffer 200ms longer than another, creating immediate divergence.
 
-### Sidelight's Authoritative Snapshot & Extrapolation Model
+### WatchAlong's Authoritative Snapshot & Extrapolation Model
 
 1. **Server Timestamp Anchoring**:
    When a play command is accepted at server timestamp $T_{\text{update}}$ with position $P_{\text{anchor}}$, the room playback state is:
@@ -135,7 +135,7 @@ Server: Broadcast room_state (avatar dimmed / "reconnecting...")
 ```
 
 ### Host Succession Policy
-If the host permanently disconnects, Sidelight ensures the room is never left orphaned:
+If the host permanently disconnects, WatchAlong ensures the room is never left orphaned:
 1. Promote the longest-standing active **Moderator** who is currently connected.
 2. If no moderators exist, promote the longest-standing active **Participant** who is connected.
 3. If all members disconnect and the grace period expires, the empty room is pruned from memory.

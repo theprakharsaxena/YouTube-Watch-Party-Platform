@@ -1,18 +1,18 @@
-# Sidelight — Real-Time YouTube Watch Party Platform
+# WatchAlong — Real-Time YouTube Watch Party Platform
 
 > **"One video. Everyone in sync."**  
-> Sidelight is an intimate, cinematic shared viewing space where friends can watch YouTube videos together, keep playback in lockstep across separate devices, and coordinate with host and moderator controls.
+> WatchAlong is an intimate, cinematic shared viewing space where friends can watch YouTube videos together, keep playback in lockstep across separate devices, and coordinate with host and moderator controls.
 
 ---
 
 ## 1. Project Overview
 
-Sidelight is built to solve the frustration of group viewing over voice calls: counting down "3, 2, 1, play", fighting drift, or having one person accidentally pause the video for thirty people without permission.
+WatchAlong is built to solve the frustration of group viewing over voice calls: counting down "3, 2, 1, play", fighting drift, or having one person accidentally pause the video for thirty people without permission.
 
-In Sidelight:
+In WatchAlong:
 - **Server is the single source of truth**: Rooms, playback state, timestamps, and roles live on the server.
 - **Role-Based Access Control (RBAC)**: Hosts and Moderators control the remote (play, pause, seek, change video). Participants watch in synchronized harmony without risk of accidental disruption.
-- **Intelligent Drift Control**: Rather than constant micro-seeking that stutters YouTube's internal buffering, Sidelight uses a calibrated drift threshold and elapsed-time extrapolation to keep clients in sync.
+- **Intelligent Drift Control**: Rather than constant micro-seeking that stutters YouTube's internal buffering, WatchAlong uses a calibrated drift threshold and elapsed-time extrapolation to keep clients in sync.
 - **Zero-Account Friction**: Instant access with a display name and cryptographic session tokens that survive browser refreshes without requiring user accounts or third-party OAuth.
 
 ---
@@ -131,7 +131,7 @@ Copy `client/.env.example` to `client/.env`:
 ```env
 # Public URL of the backend.
 # In local development, leave this EMPTY: Vite automatically proxies /api and /socket.io to localhost:4000.
-# In production, set this to your deployed backend origin (e.g. https://sidelight-api.onrender.com)
+# In production, set this to your deployed backend origin (e.g. https://watchalong-api.onrender.com)
 VITE_SERVER_URL=
 ```
 
@@ -338,14 +338,14 @@ npm run build
 - **Start Command**: `npm start`
 - **Environment Variables**:
   - `PORT`: (Render sets this automatically)
-  - `CLIENT_ORIGINS`: `https://your-sidelight-client.onrender.com,https://your-custom-domain.com`
+  - `CLIENT_ORIGINS`: `https://your-watchalong-client.onrender.com,https://your-custom-domain.com`
 
 #### 2. Frontend Static Site (Render / Vercel / Netlify)
 - **Root Directory**: `client`
 - **Build Command**: `npm run build`
 - **Publish Directory**: `dist`
 - **Environment Variables**:
-  - `VITE_SERVER_URL`: `https://your-sidelight-backend.onrender.com`
+  - `VITE_SERVER_URL`: `https://your-watchalong-backend.onrender.com`
 - **SPA Routing**: The project includes `client/public/_redirects` (for Netlify/Render) and `client/vercel.json` (for Vercel) so that deep links such as `/r/:roomId` route properly to `index.html`.
 
 ---
@@ -353,6 +353,6 @@ npm run build
 ## 15. Known Limitations & Future Improvements
 
 1. **In-Memory Persistence**: Rooms are stored in memory. A server restart removes existing rooms. For multi-instance scaling, room state should be backed by Redis / Valkey with Redis Pub/Sub for cross-instance Socket.IO coordination.
-2. **YouTube Embed Policies**: Certain copyrighted music videos or age-restricted videos prohibit embedded playback on external domains (YouTube error 101/150). Sidelight detects this and displays a user-friendly explanation prompting the host to select another video.
-3. **Browser Autoplay Policies**: Modern browsers require user interaction before playing audio. Sidelight detects autoplay blocking and renders a prominent "Click to join playback" gesture overlay.
+2. **YouTube Embed Policies**: Certain copyrighted music videos or age-restricted videos prohibit embedded playback on external domains (YouTube error 101/150). WatchAlong detects this and displays a user-friendly explanation prompting the host to select another video.
+3. **Browser Autoplay Policies**: Modern browsers require user interaction before playing audio. WatchAlong detects autoplay blocking and renders a prominent "Click to join playback" gesture overlay.
 4. **Session Authentication**: Current identities are lightweight session identities. Adding optional persistent user accounts or room passcodes would allow private watch parties.

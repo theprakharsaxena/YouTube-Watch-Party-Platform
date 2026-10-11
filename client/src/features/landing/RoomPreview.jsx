@@ -12,7 +12,7 @@ const SAMPLE = [
 
 export default function RoomPreview() {
   return (
-    <figure className="preview" aria-label="Illustration of a Sidelight watch room">
+    <figure className="preview" aria-label="Illustration of a WatchAlong watch room">
       <div className="preview__window">
         <div className="preview__bar">
           <span className="preview__code">ROOM · K7QX2-M9WTA</span>

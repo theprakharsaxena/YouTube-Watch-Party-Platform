@@ -55,7 +55,7 @@ export default function WatchRoom() {
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(() => {
     try {
-      const saved = localStorage.getItem('sidelight_volume');
+      const saved = localStorage.getItem('watchalong_volume') ?? localStorage.getItem('sidelight_volume');
       return saved !== null ? Number(saved) : 100;
     } catch {
       return 100;
@@ -170,7 +170,7 @@ export default function WatchRoom() {
     const clamped = Math.max(0, Math.min(100, Math.round(newVolume)));
     setVolume(clamped);
     try {
-      localStorage.setItem('sidelight_volume', String(clamped));
+      localStorage.setItem('watchalong_volume', String(clamped));
     } catch {
       /* ignore */
     }

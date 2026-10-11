@@ -49,6 +49,8 @@ export default function CreateRoomPage() {
     try {
       const { roomId } = await createRoom({ displayName: effectiveName, videoUrl: videoUrl.trim() });
       try {
+        localStorage.setItem(`watchalong:host_room:${roomId}`, 'true');
+        sessionStorage.setItem(`watchalong:host_room:${roomId}`, 'true');
         localStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
         sessionStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
       } catch {

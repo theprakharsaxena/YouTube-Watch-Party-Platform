@@ -11,7 +11,11 @@ import { Room } from './Room.js';
 export class SqliteRoomStore extends RoomStore {
   #db;
 
-  constructor({ dbPath = resolve(process.cwd(), 'data/sidelight.db') } = {}) {
+  constructor({
+    dbPath = existsSync(resolve(process.cwd(), 'data/sidelight.db')) && !existsSync(resolve(process.cwd(), 'data/watchalong.db'))
+      ? resolve(process.cwd(), 'data/sidelight.db')
+      : resolve(process.cwd(), 'data/watchalong.db'),
+  } = {}) {
     super();
     const dir = dirname(dbPath);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });

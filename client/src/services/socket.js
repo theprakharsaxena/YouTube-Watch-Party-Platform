@@ -10,7 +10,7 @@ export function getSocket() {
       autoConnect: false,
       auth: (cb) => {
         try {
-          const token = localStorage.getItem('sidelight_auth_token');
+          const token = localStorage.getItem('watchalong_auth_token') || localStorage.getItem('sidelight_auth_token');
           cb({ token: token || undefined });
         } catch {
           cb({});
@@ -25,11 +25,14 @@ export function getSocket() {
 
 // Lightweight session identity, kept per tab so two tabs can be two different people.
 // The token only proves "same browser session as before"; roles always come from the server.
-const key = (roomId) => `sidelight:session:${roomId}`;
+const key = (roomId) => `watchalong:session:${roomId}`;
+const legacyKey = (roomId) => `sidelight:session:${roomId}`;
 
 export function loadSession(roomId) {
   try {
-    return JSON.parse(sessionStorage.getItem(key(roomId)) || 'null');
+    return JSON.parse(
+      sessionStorage.getItem(key(roomId)) || sessionStorage.getItem(legacyKey(roomId)) || 'null',
+    );
   } catch {
     return null;
   }
@@ -46,6 +49,7 @@ export function saveSession(roomId, session) {
 export function clearSession(roomId) {
   try {
     sessionStorage.removeItem(key(roomId));
+    sessionStorage.removeItem(legacyKey(roomId));
   } catch {
     /* ignore */
   }

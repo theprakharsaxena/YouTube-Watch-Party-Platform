@@ -129,7 +129,7 @@ export default function InteractiveSyncFlow() {
           <div className="sync-node__icon">
             <Server size={26} />
           </div>
-          <span className="sync-node__label">Sidelight Server</span>
+          <span className="sync-node__label">WatchAlong Server</span>
           <div className="sync-node__telemetry">
             <span className="sync-node__status-badge">
               <span className="status-pill__dot" />

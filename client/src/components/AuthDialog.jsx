@@ -42,7 +42,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
     <Dialog
       open={open}
       onClose={onClose}
-      title={mode === 'login' ? 'Log in to Sidelight' : 'Create an Account'}
+      title={mode === 'login' ? 'Log in to WatchAlong' : 'Create an Account'}
       description="Save your watch party identity and sign in before hosting or joining rooms."
       labelledBy="auth-dialog-title"
     >

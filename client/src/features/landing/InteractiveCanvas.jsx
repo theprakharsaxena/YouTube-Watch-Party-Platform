@@ -54,7 +54,7 @@ export default function InteractiveCanvas() {
     }
 
     function createParticle() {
-      // Warm amber, coral, and soft gold hues matching Sidelight palette
+      // Warm amber, coral, and soft gold hues matching WatchAlong palette
       const colors = [
         'rgba(242, 166, 90, ', // amber
         'rgba(239, 123, 106, ', // coral

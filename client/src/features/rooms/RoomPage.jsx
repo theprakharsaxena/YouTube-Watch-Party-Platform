@@ -174,7 +174,7 @@ export default function RoomPage() {
       (lookup.info?.hostUserId && lookup.info.hostUserId === user.id) ||
       (lookup.info?.creatorUserId && lookup.info.creatorUserId === user.id) ||
       (lookup.info?.hostName && (lookup.info.hostName || '').trim().toLowerCase() === (user.displayName || '').trim().toLowerCase()) ||
-      (code && localStorage.getItem(`sidelight:host_room:${code}`) === 'true')
+      (code && (localStorage.getItem(`watchalong:host_room:${code}`) === 'true' || localStorage.getItem(`sidelight:host_room:${code}`) === 'true'))
     )
   );
 

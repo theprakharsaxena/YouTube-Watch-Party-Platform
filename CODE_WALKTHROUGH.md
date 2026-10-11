@@ -1,4 +1,4 @@
-# Sidelight — Code Walkthrough & Technical Interview Guide
+# WatchAlong — Code Walkthrough & Technical Interview Guide
 
 This guide is designed to help any engineer understand the codebase and explain its architecture, synchronization algorithm, and trade-offs in a technical evaluation.
 
@@ -22,7 +22,7 @@ This guide is designed to help any engineer understand the codebase and explain 
 
 ## 2. Explain the Architecture in Two Minutes
 
-> "Sidelight is a real-time watch party platform architected around **server-authoritative state**.
+> "WatchAlong is a real-time watch party platform architected around **server-authoritative state**.
 >
 > The backend is built with Node.js, Express, and Socket.IO. We keep business logic strictly separate from the transport layer: `roomService.js` handles room state, playback math, and role-based permissions without knowing anything about WebSockets, while `socketServer.js` handles connections, token-bucket rate limiting, and event dispatch.
 >
@@ -86,7 +86,7 @@ When an interviewer asks: *"What prevents a participant from hacking the client 
   - `RoomMessageHandler`, `PlaybackMessageHandler`, `ChatMessageHandler`: Event-specific handlers extending `BaseMessageHandler`.
 
 ### 3. Database Persistence (SQLite & File-based)
-- `SqliteRoomStore`: Uses Node.js native `DatabaseSync` (`node:sqlite`) to persist room state to disk (`data/sidelight.db`) with zero external C++ build dependencies.
+- `SqliteRoomStore`: Uses Node.js native `DatabaseSync` (`node:sqlite`) to persist room state to disk (`data/watchalong.db`) with zero external C++ build dependencies.
 - `PersistentRoomStore`: Backs up rooms in JSON format (`data/rooms.json`), saving snapshots upon state changes and restoring on server start.
 
 ### 4. Authentication System

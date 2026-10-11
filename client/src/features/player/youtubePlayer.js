@@ -114,7 +114,7 @@ export class YouTubePlayerController {
       videoId,
       playerVars: {
         enablejsapi: 1,
-        controls: 0, // all control goes through Sidelight so it can be role-checked
+        controls: 0, // all control goes through WatchAlong so it can be role-checked
         disablekb: 1,
         rel: 0,
         showinfo: 0,

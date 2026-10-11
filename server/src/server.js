@@ -28,7 +28,7 @@ const isEntrypoint = import.meta.url === `file://${process.argv[1]}`;
 if (isEntrypoint) {
   const { httpServer, io, roomService, config } = createServer();
   httpServer.listen(config.port, () => {
-    console.log(`Sidelight server listening on :${config.port}`);
+    console.log(`WatchAlong server listening on :${config.port}`);
     console.log(`Allowed client origins: ${config.clientOrigins.join(', ')}`);
   });
   const shutdown = () => {
