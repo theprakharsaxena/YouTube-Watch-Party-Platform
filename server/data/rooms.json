@@ -953,5 +953,34 @@
     },
     "chatMessages": [],
     "pendingRequests": []
+  },
+  {
+    "id": "AS2VVESAV5",
+    "createdAt": 1791692506518,
+    "hostId": "a32d2242",
+    "participants": [
+      {
+        "id": "a32d2242",
+        "userId": "u_7c0196b020d4960d",
+        "name": "Prakhar Saxena",
+        "role": "host",
+        "socketId": null,
+        "token": "ov1wf1pqvB-_GlKuMGBnoVrpOiwsHPvV",
+        "connected": false,
+        "joinedAt": 1791692506518,
+        "updatedAt": 1791692506518
+      }
+    ],
+    "removedTokens": [],
+    "removedUserIds": [],
+    "playback": {
+      "videoId": "rC-kbRanJQ0",
+      "status": "paused",
+      "position": 0,
+      "updatedAt": 1791692506518,
+      "revision": 0
+    },
+    "chatMessages": [],
+    "pendingRequests": []
   }
 ]
