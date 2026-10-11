@@ -5,6 +5,18 @@
 
 ---
 
+## 🚀 Live Demo & Deliverables
+
+| Resource | URL / Link |
+| :--- | :--- |
+| **Live Web Application (Frontend)** | [https://you-tube-watch-party-platform.vercel.app](https://you-tube-watch-party-platform.vercel.app) |
+| **Live WebSocket Server (Backend)** | [https://youtube-watch-party-platform.onrender.com](https://youtube-watch-party-platform.onrender.com) |
+| **GitHub Repository** | [https://github.com/theprakharsaxena/YouTube-Watch-Party-Platform](https://github.com/theprakharsaxena/YouTube-Watch-Party-Platform) |
+| **Project Demo Video** | [Watch Demo Video (Google Drive)](https://drive.google.com/file/d/1t1SDWxCz26VQ5ShapTdaMpZZlbFNa04N/view?usp=sharing) |
+| **Code Walkthrough Video** | [Watch Code Walkthrough (Google Drive)](https://drive.google.com/file/d/1kdbFAnd1CVDURaJuyiwiBuXfnPboh3tf/view?usp=sharing) |
+
+---
+
 ## 1. Project Overview
 
 WatchAlong is built to solve the frustration of group viewing over voice calls: counting down "3, 2, 1, play", fighting drift, or having one person accidentally pause the video for thirty people without permission.
@@ -83,8 +95,8 @@ In WatchAlong:
 - **Redis Pub/Sub Adapter support** for horizontal scaling
 
 ### Testing
-- **Vitest & React Testing Library**: 36 frontend tests passing.
-- **Node.js Test Runner (`node:test`)**: 37 backend tests passing.
+- **Vitest & React Testing Library**: 47 frontend tests passing.
+- **Node.js Test Runner (`node:test`)**: 42 backend tests passing.
 
 ---
 
@@ -302,21 +314,21 @@ Security is strictly server-side:
 
 ## 13. Testing Instructions
 
-### Backend Test Suite (37 Tests)
+### Backend Test Suite (42 Tests)
 Runs unit tests for OOP room & participant models, auth service with scrypt hashing, SQLite persistence, chat & reactions, `RoomService`, validation helpers, and full Socket.IO client-server integration tests:
 ```bash
 cd server
 npm test
 ```
-*Result: 37 passed, 0 failed.*
+*Result: 42 passed, 0 failed.*
 
-### Frontend Test Suite (36 Tests)
+### Frontend Test Suite (47 Tests)
 Runs Vitest for synchronization logic, drift calculations, formatters, playback controls, player stage, and chat panel:
 ```bash
 cd client
 npm test
 ```
-*Result: 36 passed, 0 failed.*
+*Result: 47 passed, 0 failed.*
 
 ### Production Build Validation
 ```bash
@@ -352,7 +364,7 @@ npm run build
 
 ## 15. Known Limitations & Future Improvements
 
-1. **In-Memory Persistence**: Rooms are stored in memory. A server restart removes existing rooms. For multi-instance scaling, room state should be backed by Redis / Valkey with Redis Pub/Sub for cross-instance Socket.IO coordination.
+1. **Persistence & Scalability (Implemented as Bonus)**: Rooms are saved to SQLite (`node:sqlite`) with fallback JSON storage, and cross-server horizontal scaling is enabled through the Socket.IO Redis adapter (`redisAdapter.js`).
 2. **YouTube Embed Policies**: Certain copyrighted music videos or age-restricted videos prohibit embedded playback on external domains (YouTube error 101/150). WatchAlong detects this and displays a user-friendly explanation prompting the host to select another video.
 3. **Browser Autoplay Policies**: Modern browsers require user interaction before playing audio. WatchAlong detects autoplay blocking and renders a prominent "Click to join playback" gesture overlay.
-4. **Session Authentication**: Current identities are lightweight session identities. Adding optional persistent user accounts or room passcodes would allow private watch parties.
+4. **Session Authentication**: Includes full user accounts (registration & login with scrypt password hashing) alongside seamless guest sessions. Optional room passcodes can be added for private password-protected watch parties.
