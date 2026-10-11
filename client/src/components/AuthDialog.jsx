@@ -77,7 +77,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
                 type="text"
                 name="displayName"
                 autoComplete="name"
-                placeholder="e.g. Hana Montana"
+                placeholder="e.g. Prakhar Saxena"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
@@ -97,7 +97,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
               type="email"
               name="email"
               autoComplete="email"
-              placeholder="e.g. hana@example.com"
+              placeholder="e.g. prakhar@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

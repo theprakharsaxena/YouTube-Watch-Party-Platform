@@ -435,7 +435,9 @@ export default function InteractiveRoomPreview() {
         {/* Room Header Bar */}
         <div className="preview__bar">
           <div className="preview__bar-left">
-            <span className="preview__code">ROOM · K7QX2-M9WTA</span>
+            <span className="preview__code">
+              <span className="preview__code-label">ROOM · </span>K7QX2-M9WTA
+            </span>
             <span className="preview__pill-interactive">Interactive Demo</span>
           </div>
           <div className="preview__bar-right">
@@ -445,7 +447,7 @@ export default function InteractiveRoomPreview() {
               onClick={() => setShowUrlDrawer(!showUrlDrawer)}
               title="Paste your own YouTube video link"
             >
-              <Film size={12} />
+              <Film size={12} aria-hidden="true" />
               <span>Change Video</span>
             </button>
             <button
@@ -454,10 +456,11 @@ export default function InteractiveRoomPreview() {
               onClick={simulateSyncDrift}
               title="Click to simulate real-time room synchronization"
             >
-              <Zap size={13} className={syncStatus === 'syncing' ? 'spin-pulse' : ''} />
+              <Zap size={13} aria-hidden="true" className={syncStatus === 'syncing' ? 'spin-pulse' : ''} />
               <span>{syncStatus === 'syncing' ? 'Syncing...' : 'Test Sync'}</span>
             </button>
             <span className="conn-badge conn-badge--connected">
+              <span className="conn-badge__dot" />
               <span className="conn-badge__label">Connected</span>
             </span>
           </div>

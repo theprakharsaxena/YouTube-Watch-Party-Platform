@@ -35,33 +35,32 @@ export default function LandingPage() {
       {/* Interactive ambient particles & cursor constellation backdrop */}
       <InteractiveCanvas />
 
-      <header className="landing__nav">
-        <Brand />
-        <nav aria-label="Primary" className="landing__nav-links">
-          <a href="#how-it-works">How it works</a>
-          <a href="#roles">Roles</a>
-          <Link to="/join" className="btn btn--ghost btn--sm">Join a room</Link>
-          {user && !user.isGuest ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.875rem', color: 'var(--amber)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <User size={14} aria-hidden="true" />
-                <span>{user.displayName}</span>
-              </span>
-              <button type="button" className="btn btn--ghost btn--sm" onClick={logout}>
-                Log out
+      <div className="landing__hero-fold">
+        <header className="landing__nav">
+          <Brand />
+          <nav aria-label="Primary" className="landing__nav-links">
+            <a href="#how-it-works">How it works</a>
+            <a href="#roles">Roles</a>
+            <Link to="/join" className="btn btn--ghost btn--sm landing__nav-join">Join a room</Link>
+            {user && !user.isGuest ? (
+              <div className="landing__nav-user">
+                <span className="landing__nav-username">
+                  <User size={14} aria-hidden="true" />
+                  <span className="landing__nav-name">{user.displayName}</span>
+                </span>
+                <button type="button" className="btn btn--ghost btn--sm landing__nav-logout" onClick={logout}>
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="btn btn--secondary btn--sm landing__nav-auth" onClick={() => setAuthOpen(true)}>
+                <span className="landing__nav-auth-long">Log in / Register</span>
+                <span className="landing__nav-auth-short">Log in</span>
               </button>
-            </div>
-          ) : (
-            <button type="button" className="btn btn--secondary btn--sm" onClick={() => setAuthOpen(true)}>
-              Log in / Register
-            </button>
-          )}
-        </nav>
-      </header>
+            )}
+          </nav>
+        </header>
 
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
-
-      <main>
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero__copy">
             <p className="eyebrow">
@@ -88,6 +87,11 @@ export default function LandingPage() {
             <InteractiveRoomPreview />
           </div>
         </section>
+      </div>
+
+      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+
+      <main>
 
         <section id="how-it-works" className="section" aria-labelledby="how-title">
           <h2 id="how-title" className="section__title">How the sync works</h2>
