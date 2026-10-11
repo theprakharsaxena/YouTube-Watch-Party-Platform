@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getSocket } from '../services/socket.js';
+import { SERVER_URL } from '../services/api.js';
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'sidelight_auth_token';
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    fetch('/api/auth/me', {
+    fetch(`${SERVER_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -74,7 +75,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = async ({ email, password }) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${SERVER_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -86,7 +87,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async ({ email, password, displayName }) => {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(`${SERVER_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, displayName }),
@@ -98,7 +99,7 @@ export function AuthProvider({ children }) {
   };
 
   const guestLogin = async (displayName) => {
-    const res = await fetch('/api/auth/guest', {
+    const res = await fetch(`${SERVER_URL}/api/auth/guest`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ displayName }),
