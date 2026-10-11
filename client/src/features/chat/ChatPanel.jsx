@@ -47,7 +47,7 @@ export default function ChatPanel({ messages, meId, onSendMessage, isViewer = fa
                 className={`chat-msg${isMe ? ' chat-msg--me' : ''}${msg.type === 'system' ? ' chat-msg--system' : ''}`}
               >
                 {!isMe && msg.type !== 'system' && (
-                  <Avatar name={msg.senderName} />
+                  <Avatar name={msg.senderName} size={24} />
                 )}
                 <div className="chat-msg__bubble">
                   {msg.type !== 'system' && (
