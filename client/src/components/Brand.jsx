@@ -1,19 +1,31 @@
 import { Link } from 'react-router-dom';
+import logoUrl from '../assets/logo.png';
 
-export function BrandMark({ size = 28 }) {
+export function BrandMark({ size = 32, className = '' }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" role="img" aria-label="WatchAlong" className="brand-mark">
-      <rect x="1.4" y="1.4" width="29.2" height="29.2" rx="8.6" fill="none" stroke="currentColor" strokeOpacity=".55" strokeWidth="1.4" />
-      <path d="M13.5 9.5v13l9.5-6.5z" fill="var(--amber)" />
-      <path d="M8 11.5v9" stroke="var(--coral)" strokeLinecap="round" strokeWidth="2.2" />
-    </svg>
+    <img
+      src={logoUrl}
+      alt="WatchAlong logo"
+      width={size}
+      height={size}
+      className={`brand-mark ${className}`}
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        objectFit: 'contain',
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        flexShrink: 0,
+        filter: 'drop-shadow(0 2px 6px rgba(239, 68, 68, 0.25))',
+      }}
+    />
   );
 }
 
 export default function Brand({ to = '/' }) {
   return (
     <Link to={to} className="brand" aria-label="WatchAlong home">
-      <BrandMark />
+      <BrandMark size={32} />
       <span className="brand__word">WatchAlong</span>
     </Link>
   );
