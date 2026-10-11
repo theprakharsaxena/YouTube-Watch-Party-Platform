@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Lock, LogIn, Mail, User, UserPlus } from 'lucide-react';
 import Dialog from './Dialog.jsx';
 import Button from './Button.jsx';
@@ -38,6 +38,34 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
     }
   };
 
+  const displayNameRef = useRef(null);
+  const emailRef = useRef(null);
+  const prevOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+        if (mode === 'register') {
+          displayNameRef.current?.focus();
+        } else {
+          emailRef.current?.focus();
+        }
+      }
+    }
+    prevOpenRef.current = open;
+  }, [open, mode]);
+
+  const handleSwitchMode = (newMode) => {
+    setMode(newMode);
+    setTimeout(() => {
+      if (newMode === 'register') {
+        displayNameRef.current?.focus();
+      } else {
+        emailRef.current?.focus();
+      }
+    }, 0);
+  };
+
   return (
     <Dialog
       open={open}
@@ -52,7 +80,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
           role="tab"
           aria-selected={mode === 'login'}
           className={`auth-tab ${mode === 'login' ? 'auth-tab--active' : ''}`}
-          onClick={() => setMode('login')}
+          onClick={() => handleSwitchMode('login')}
         >
           Log In
         </button>
@@ -61,7 +89,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
           role="tab"
           aria-selected={mode === 'register'}
           className={`auth-tab ${mode === 'register' ? 'auth-tab--active' : ''}`}
-          onClick={() => setMode('register')}
+          onClick={() => handleSwitchMode('register')}
         >
           Sign Up
         </button>
@@ -69,11 +97,13 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
 
       <form onSubmit={handleSubmit} className="form-stack auth-form">
         {mode === 'register' && (
-          <label className="field">
-            <span className="field__label">Display Name</span>
+          <div className="field">
+            <label htmlFor="auth-display-name" className="field__label">Display Name</label>
             <div className="auth-input-box">
               <User size={18} className="auth-input-icon" aria-hidden="true" />
               <input
+                ref={displayNameRef}
+                id="auth-display-name"
                 type="text"
                 name="displayName"
                 autoComplete="name"
@@ -83,17 +113,18 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
                 required
                 minLength={2}
                 maxLength={32}
-                autoFocus
               />
             </div>
-          </label>
+          </div>
         )}
 
-        <label className="field">
-          <span className="field__label">Email</span>
+        <div className="field">
+          <label htmlFor="auth-email" className="field__label">Email</label>
           <div className="auth-input-box">
             <Mail size={18} className="auth-input-icon" aria-hidden="true" />
             <input
+              ref={emailRef}
+              id="auth-email"
               type="email"
               name="email"
               autoComplete="email"
@@ -101,16 +132,16 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoFocus={mode === 'login'}
             />
           </div>
-        </label>
+        </div>
 
-        <label className="field">
-          <span className="field__label">Password</span>
+        <div className="field">
+          <label htmlFor="auth-password" className="field__label">Password</label>
           <div className="auth-input-box">
             <Lock size={18} className="auth-input-icon" aria-hidden="true" />
             <input
+              id="auth-password"
               type={showPassword ? 'text' : 'password'}
               name="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -130,7 +161,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
               {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
             </button>
           </div>
-        </label>
+        </div>
 
         <div className="dialog__actions" style={{ marginTop: '8px' }}>
           <Button variant="ghost" onClick={onClose} type="button">
@@ -149,7 +180,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
                 type="button"
                 className="link-btn"
                 style={{ background: 'transparent', border: 0, color: 'var(--amber)', cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={() => setMode('register')}
+                onClick={() => handleSwitchMode('register')}
               >
                 Sign up
               </button>
@@ -161,7 +192,7 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
                 type="button"
                 className="link-btn"
                 style={{ background: 'transparent', border: 0, color: 'var(--amber)', cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={() => setMode('login')}
+                onClick={() => handleSwitchMode('login')}
               >
                 Log in
               </button>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Crown, DoorClosed, Eye, LogIn, SearchX, UserCheck, UserX } from 'lucide-react';
 import FormShell from '../../components/FormShell.jsx';
@@ -53,6 +53,7 @@ export default function RoomPage() {
   const [nameError, setNameError] = useState('');
   const [joining, setJoining] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const handleCloseAuth = useCallback(() => setAuthOpen(false), []);
   const autoJoinTried = useRef(null);
 
   const isInRoom = phase === 'joined' && activeRoomId === code;
@@ -285,7 +286,7 @@ export default function RoomPage() {
           </div>
         )}
       </FormShell>
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthDialog open={authOpen} onClose={handleCloseAuth} />
     </>
   );
 }

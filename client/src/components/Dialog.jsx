@@ -4,15 +4,24 @@ import { X } from 'lucide-react';
 
 export default function Dialog({ open, onClose, title, description, children, footer, labelledBy = 'dialog-title' }) {
   const previousFocus = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return undefined;
-    previousFocus.current = document.activeElement;
+
+    if (document.activeElement && (!dialogRef.current || !dialogRef.current.contains(document.activeElement))) {
+      previousFocus.current = document.activeElement;
+    }
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current?.();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -23,11 +32,14 @@ export default function Dialog({ open, onClose, title, description, children, fo
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
-      if (previousFocus.current instanceof HTMLElement) {
+      if (
+        previousFocus.current instanceof HTMLElement &&
+        (!dialogRef.current || !dialogRef.current.contains(previousFocus.current))
+      ) {
         previousFocus.current.focus();
       }
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -39,6 +51,7 @@ export default function Dialog({ open, onClose, title, description, children, fo
       }}
     >
       <div
+        ref={dialogRef}
         className="dialog"
         role="dialog"
         aria-modal="true"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ArrowRight, Check, Crown, Eye, Link2, RefreshCw, ShieldCheck, Minus, User, UserCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Brand from '../../components/Brand.jsx';
@@ -29,6 +29,7 @@ function Mark({ on }) {
 export default function LandingPage() {
   const { user, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
+  const handleCloseAuth = useCallback(() => setAuthOpen(false), []);
 
   return (
     <div className="landing">
@@ -89,7 +90,7 @@ export default function LandingPage() {
         </section>
       </div>
 
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthDialog open={authOpen} onClose={handleCloseAuth} />
 
       <main>
 

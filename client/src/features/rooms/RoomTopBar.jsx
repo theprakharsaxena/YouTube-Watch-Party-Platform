@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Check, Copy, Link2, LogOut, User, UsersRound } from 'lucide-react';
 import Brand from '../../components/Brand.jsx';
 import ConnectionBadge from '../../components/ConnectionBadge.jsx';
@@ -13,6 +13,8 @@ export default function RoomTopBar({ roomId, connection, participantCount, copie
   const toast = useToast();
   const [authOpen, setAuthOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+
+  const handleCloseAuth = useCallback(() => setAuthOpen(false), []);
 
   const handleCopyCode = async () => {
     const code = formatRoomCode(roomId);
@@ -76,7 +78,7 @@ export default function RoomTopBar({ roomId, connection, participantCount, copie
         <LogOut size={18} aria-hidden="true" />
       </button>
 
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthDialog open={authOpen} onClose={handleCloseAuth} />
     </header>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clapperboard, LogIn, UserCheck } from 'lucide-react';
 import FormShell from '../../components/FormShell.jsx';
@@ -21,6 +21,7 @@ export default function CreateRoomPage() {
   const [submitError, setSubmitError] = useState('');
   const [busy, setBusy] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const handleCloseAuth = useCallback(() => setAuthOpen(false), []);
 
   useEffect(() => {
     if (user?.displayName) {
@@ -167,7 +168,7 @@ export default function CreateRoomPage() {
           </Button>
         </form>
       </FormShell>
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthDialog open={authOpen} onClose={handleCloseAuth} />
     </>
   );
 }
