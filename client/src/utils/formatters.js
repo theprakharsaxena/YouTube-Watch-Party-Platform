@@ -7,15 +7,10 @@ export function formatTime(totalSeconds) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-/** ABCDEFGHJK -> ABCDE-FGHJK for readability. */
 export function formatRoomCode(roomId = '') {
   return roomId.length === 10 ? `${roomId.slice(0, 5)}-${roomId.slice(5)}` : roomId;
 }
 
-/**
- * Accepts a pasted invite link ( .../r/ABCDE-FGHJK ) or a raw code and returns the
- * 10-char canonical code, or null.
- */
 export function parseRoomInput(input) {
   if (typeof input !== 'string') return null;
   let text = input.trim();
@@ -33,3 +28,4 @@ export function initials(name = '') {
 }
 
 export const ROLE_LABELS = { host: 'Host', moderator: 'Moderator', participant: 'Participant', viewer: 'Viewer' };
+

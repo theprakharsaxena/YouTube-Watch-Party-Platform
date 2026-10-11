@@ -17,7 +17,6 @@ export const Actions = Object.freeze({
   REMOVE_PARTICIPANT: 'remove_participant',
 });
 
-// The single source of truth for "who may do what".
 const PERMISSIONS = {
   [Actions.CONTROL_PLAYBACK]: [Roles.HOST, Roles.MODERATOR],
   [Actions.CHANGE_VIDEO]: [Roles.HOST, Roles.MODERATOR],
@@ -42,9 +41,9 @@ export function can(role, action) {
   return (PERMISSIONS[action] ?? []).includes(role);
 }
 
-/** Throws FORBIDDEN unless the participant's *server-held* role allows the action. */
 export function assertCan(participant, action) {
   if (!can(participant.role, action)) {
     throw new AppError(ErrorCodes.FORBIDDEN, DENIAL_MESSAGES[action] ?? 'You are not allowed to do that.');
   }
 }
+

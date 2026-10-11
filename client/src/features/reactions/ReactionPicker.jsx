@@ -24,3 +24,4 @@ export default function ReactionPicker({ onSendReaction, disabled = false }) {
     </div>
   );
 }
+

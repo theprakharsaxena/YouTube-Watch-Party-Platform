@@ -1,14 +1,6 @@
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 
-/**
- * Scalability Architecture:
- * Enables horizontal scaling across multiple Node.js WebSocket server instances.
- * Uses Redis Pub/Sub to broadcast room events (playback, roles, chat, reactions)
- * across servers so participants connected to different instances stay in 100% sync.
- *
- * Target architecture: 1,000+ concurrent users, 100+ active rooms, 50+ users per room.
- */
 export async function setupRedisAdapter(io, { redisUrl = process.env.REDIS_URL } = {}) {
   if (!redisUrl) {
     return {
@@ -45,3 +37,4 @@ export async function setupRedisAdapter(io, { redisUrl = process.env.REDIS_URL }
     };
   }
 }
+

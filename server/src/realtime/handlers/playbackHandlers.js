@@ -3,9 +3,6 @@ import { assertPayloadObject } from '../../rooms/roomValidation.js';
 
 const publicActor = ({ id, name, role }) => ({ id, name, role });
 
-/**
- * Handles server-authoritative playback synchronization commands.
- */
 export class PlaybackMessageHandler extends BaseMessageHandler {
   broadcast(result) {
     this.broadcastToRoom(result.room.id, 'playback_updated', {
@@ -35,3 +32,4 @@ export class PlaybackMessageHandler extends BaseMessageHandler {
 export function registerPlaybackHandlers(ctx, socket, on) {
   new PlaybackMessageHandler(ctx, socket, on).register();
 }
+

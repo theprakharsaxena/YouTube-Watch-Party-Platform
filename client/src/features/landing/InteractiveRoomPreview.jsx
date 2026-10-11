@@ -43,7 +43,7 @@ export default function InteractiveRoomPreview() {
   const [isMuted, setIsMuted] = useState(true);
   const [playerReady, setPlayerReady] = useState(false);
   const [playerError, setPlayerError] = useState(null);
-  const [syncStatus, setSyncStatus] = useState('synced'); // 'synced' | 'syncing' | 'drift'
+  const [syncStatus, setSyncStatus] = useState('synced');
   const [syncMessage, setSyncMessage] = useState('In step with the room');
   const [floatingReactions, setFloatingReactions] = useState([]);
   const [cheerNotice, setCheerNotice] = useState(null);
@@ -53,28 +53,24 @@ export default function InteractiveRoomPreview() {
   const [inputUrl, setInputUrl] = useState('');
   const [urlError, setUrlError] = useState('');
 
-  // Drag-and-drop Scrubber states & refs
   const [scrubTime, setScrubTime] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
   const scrubberRef = useRef(null);
   const lastDragSeekRef = useRef(0);
 
-  // 3D Tilt refs & states
   const windowRef = useRef(null);
   const visualizerCanvasRef = useRef(null);
   const playerHostRef = useRef(null);
   const controllerRef = useRef(null);
   const nextReactionId = useRef(1);
 
-  // Format seconds to mm:ss
   const formatTime = (secs) => {
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Mount real YouTube player
   useEffect(() => {
     const host = playerHostRef.current;
     if (!host) return undefined;
@@ -123,7 +119,7 @@ export default function InteractiveRoomPreview() {
         playerVars: {
           mute: 1,
           autoplay: 1,
-          controls: 0, // no YouTube UI (slider, share, logo)
+          controls: 0,
           disablekb: 1,
           fs: 0,
           rel: 0,
@@ -141,9 +137,8 @@ export default function InteractiveRoomPreview() {
       instance.destroy();
       controllerRef.current = null;
     };
-  }, []); // Mount player once
+  }, []);
 
-  // Track playback position & duration from actual YouTube player
   useEffect(() => {
     if (!isPlaying) return undefined;
     const interval = setInterval(() => {
@@ -168,7 +163,6 @@ export default function InteractiveRoomPreview() {
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration, videoTitle]);
 
-  // Load a new video into player
   const loadVideo = (id, customTitle = null) => {
     setVideoId(id);
     setPlayerError(null);
@@ -183,7 +177,6 @@ export default function InteractiveRoomPreview() {
     spawnReaction('🎬', 50);
   };
 
-  // Handle URL submit
   const handleUrlSubmit = (e) => {
     e.preventDefault();
     const extracted = extractVideoId(inputUrl);
@@ -197,13 +190,11 @@ export default function InteractiveRoomPreview() {
     setShowUrlDrawer(false);
   };
 
-  // Handle preset select
   const handleSelectPreset = (preset) => {
     loadVideo(preset.id, preset.title);
     setShowUrlDrawer(false);
   };
 
-  // Play / Pause toggle
   const togglePlay = () => {
     if (!controllerRef.current) return;
     if (isPlaying) {
@@ -215,7 +206,6 @@ export default function InteractiveRoomPreview() {
     }
   };
 
-  // Mute / Unmute toggle
   const toggleMute = (e) => {
     e?.stopPropagation();
     if (!controllerRef.current) return;
@@ -228,7 +218,6 @@ export default function InteractiveRoomPreview() {
     }
   };
 
-  // Audio Equalizer Canvas animation
   useEffect(() => {
     const canvas = visualizerCanvasRef.current;
     if (!canvas) return undefined;
@@ -283,7 +272,6 @@ export default function InteractiveRoomPreview() {
     return () => cancelAnimationFrame(animId);
   }, [isPlaying]);
 
-  // 3D Card Tilt on Mouse Move (disabled while dragging scrubber for stable control)
   const handleMouseMove = (e) => {
     if (!windowRef.current || isDraggingRef.current) return;
     const rect = windowRef.current.getBoundingClientRect();
@@ -292,7 +280,7 @@ export default function InteractiveRoomPreview() {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = ((y - centerY) / centerY) * -3; // max 3deg (softened tilt)
+    const rotateX = ((y - centerY) / centerY) * -3;
     const rotateY = ((x - centerX) / centerX) * 3;
 
     windowRef.current.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.008, 1.008, 1.008)`;
@@ -305,7 +293,6 @@ export default function InteractiveRoomPreview() {
     windowRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
   };
 
-  // Spawn floating reactions
   const spawnReaction = useCallback((emoji, sourceX = null) => {
     const id = nextReactionId.current++;
     const randomOffset = sourceX !== null ? sourceX : 20 + Math.random() * 60;
@@ -324,7 +311,6 @@ export default function InteractiveRoomPreview() {
     }, 1800);
   }, []);
 
-  // Screen click spawns reaction directly where clicked
   const handleScreenClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
@@ -332,7 +318,6 @@ export default function InteractiveRoomPreview() {
     spawnReaction(randomEmoji, xPercent);
   };
 
-  // Calculate time corresponding to pointer X coordinates on scrubber
   const getTimeFromPointer = useCallback((e) => {
     const scrubber = scrubberRef.current;
     if (!scrubber || totalDuration <= 0) return 0;
@@ -342,7 +327,6 @@ export default function InteractiveRoomPreview() {
     return Math.round(percentage * totalDuration);
   }, [totalDuration]);
 
-  // Interactive drag-and-drop scrubber seek with live frame preview
   const handleScrubberPointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -359,7 +343,6 @@ export default function InteractiveRoomPreview() {
       const moveTime = getTimeFromPointer(moveEvent);
       setScrubTime(moveTime);
 
-      // Throttle preview seeks during active dragging so the video frame renders smoothly (every ~50ms)
       const now = Date.now();
       if (now - lastDragSeekRef.current > 50) {
         lastDragSeekRef.current = now;
@@ -391,7 +374,6 @@ export default function InteractiveRoomPreview() {
     window.addEventListener('pointercancel', onPointerUp);
   };
 
-  // Simulate real-time sync wave
   const simulateSyncDrift = () => {
     setSyncStatus('syncing');
     setSyncMessage('⚡️ Compensating +1.2s drift...');
@@ -412,7 +394,6 @@ export default function InteractiveRoomPreview() {
     }, 1100);
   };
 
-  // Cheer participant
   const handleCheer = (name) => {
     spawnReaction('🎉');
     setCheerNotice(`Cheered ${name}!`);
@@ -432,7 +413,6 @@ export default function InteractiveRoomPreview() {
       >
         <div className="preview__glare" aria-hidden="true" />
 
-        {/* Room Header Bar */}
         <div className="preview__bar">
           <div className="preview__bar-left">
             <span className="preview__code">
@@ -466,7 +446,6 @@ export default function InteractiveRoomPreview() {
           </div>
         </div>
 
-        {/* URL Input & Presets Drawer */}
         {showUrlDrawer && (
           <div className="preview__drawer">
             <form className="preview__url-form" onSubmit={handleUrlSubmit}>
@@ -513,24 +492,20 @@ export default function InteractiveRoomPreview() {
           </div>
         )}
 
-        {/* Room Stage & Sidebar */}
         <div className="preview__body">
           <div className="preview__stage">
-            {/* Interactive Screen Display */}
+
             <div
               className={`preview__screen preview__screen--interactive ${isPlaying ? 'preview__screen--playing' : ''}`}
             >
               <span className="preview__glow" />
 
-              {/* Actual YouTube Player Mount */}
               <div className="preview__player-wrap">
                 <div ref={playerHostRef} className="preview__player-host" />
               </div>
 
-              {/* Invisible layer: blocks YouTube's hover UI; click toggles play */}
               <div className="preview__shield" onClick={togglePlay} />
 
-              {/* Error overlay if a video is restricted */}
               {playerError && (
                 <div className="preview__error-overlay">
                   <AlertTriangle size={24} className="preview__error-icon" />
@@ -546,7 +521,6 @@ export default function InteractiveRoomPreview() {
                 </div>
               )}
 
-              {/* Floating Live Reaction Particles */}
               <div className="preview__floating-container" aria-hidden="true">
                 {floatingReactions.map((r) => (
                   <span
@@ -564,7 +538,6 @@ export default function InteractiveRoomPreview() {
 
             </div>
 
-            {/* Playback Status Row */}
             <div className="preview__row">
               <span className={`status-pill ${isPlaying ? 'status-pill--playing' : 'status-pill--paused'}`}>
                 <span className="status-pill__dot" />
@@ -575,7 +548,6 @@ export default function InteractiveRoomPreview() {
               </span>
             </div>
 
-            {/* Interactive Transport Controls */}
             <div className="preview__transport">
               <button
                 type="button"
@@ -587,7 +559,6 @@ export default function InteractiveRoomPreview() {
                 {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               </button>
 
-              {/* Interactive Scrubbing Bar with Drag-and-Drop */}
               <div
                 ref={scrubberRef}
                 className={`scrubber scrubber--interactive ${isDragging ? 'scrubber--dragging' : ''}`}
@@ -606,12 +577,10 @@ export default function InteractiveRoomPreview() {
                 </div>
               </div>
 
-              {/* Time display */}
               <span className="preview__time-display">
                 {formatTime(displayTime)} / {formatTime(totalDuration)}
               </span>
 
-              {/* Custom sound on/off toggle */}
               <button
                 type="button"
                 className="sound-toggle-btn"
@@ -624,7 +593,6 @@ export default function InteractiveRoomPreview() {
               </button>
             </div>
 
-            {/* Quick Live Reaction Bar */}
             <div className="preview__reaction-bar">
               <span className="preview__reaction-label">Quick react:</span>
               <div className="preview__reaction-buttons">
@@ -643,7 +611,6 @@ export default function InteractiveRoomPreview() {
             </div>
           </div>
 
-          {/* Interactive Participants Rail */}
           <div className="preview__rail-wrap">
             <span className="preview__rail-header">In Room ({SAMPLE_PARTICIPANTS.length})</span>
             <ul className="preview__rail">
@@ -688,3 +655,4 @@ export default function InteractiveRoomPreview() {
     </figure>
   );
 }
+

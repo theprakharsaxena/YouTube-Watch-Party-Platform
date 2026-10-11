@@ -89,3 +89,4 @@ describe('CreateRoomPage', () => {
     expect(nameInput).not.toBeDisabled();
   });
 });
+

@@ -6,8 +6,8 @@ import { AppError, ErrorCodes } from '../utils/errors.js';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export class AuthService {
-  #users = new Map(); // email.toLowerCase() -> { id, email, displayName, salt, hash, createdAt }
-  #tokens = new Map(); // token -> { userId, email, displayName, isGuest, expiresAt }
+  #users = new Map();
+  #tokens = new Map();
   #filePath;
   #tokensFilePath;
 
@@ -35,7 +35,7 @@ export class AuthService {
         }
       }
     } catch {
-      /* ignore cold start */
+
     }
   }
 
@@ -45,7 +45,7 @@ export class AuthService {
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
       writeFileSync(this.#filePath, JSON.stringify([...this.#users.values()], null, 2), 'utf8');
     } catch {
-      /* ignore */
+
     }
   }
 
@@ -58,7 +58,6 @@ export class AuthService {
     return false;
   }
 
-  // Alias for backward compatibility if invoked by external callers
   isRegisteredUsername(name) {
     return this.isRegisteredDisplayName(name);
   }
@@ -84,7 +83,7 @@ export class AuthService {
         }
       }
     } catch {
-      /* ignore cold start */
+
     }
   }
 
@@ -101,7 +100,7 @@ export class AuthService {
       }
       writeFileSync(this.#tokensFilePath, JSON.stringify(list, null, 2), 'utf8');
     } catch {
-      /* ignore */
+
     }
   }
 
@@ -216,3 +215,4 @@ export class AuthService {
     };
   }
 }
+

@@ -1,13 +1,12 @@
 import { formatRoomCode } from './formatters.js';
 
-/** Copy text, falling back to a hidden textarea where the async clipboard API is unavailable. */
 export async function copyText(text) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      /* fall through to the legacy path */
+
     }
   }
   const area = document.createElement('textarea');
@@ -28,3 +27,4 @@ export async function copyText(text) {
 }
 
 export const inviteUrl = (roomId) => `${window.location.origin}/r/${formatRoomCode(roomId)}`;
+

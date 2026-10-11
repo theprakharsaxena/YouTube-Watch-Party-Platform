@@ -7,7 +7,6 @@ import { SqliteRoomStore } from './rooms/sqliteRoomStore.js';
 import { createSocketServer } from './realtime/socketServer.js';
 import { AuthService } from './auth/authService.js';
 
-/** Build the whole stack without listening, so tests can choose their own port. */
 export function createServer(config = loadConfig(), { store, authService: injectedAuth } = {}) {
   const roomStore =
     store ??
@@ -38,3 +37,4 @@ if (isEntrypoint) {
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
 }
+

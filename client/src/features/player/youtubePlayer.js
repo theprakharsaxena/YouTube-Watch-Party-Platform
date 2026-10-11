@@ -1,5 +1,3 @@
-// Thin, React-free wrapper around the official YouTube IFrame Player API.
-// Components never touch `window.YT`; they use this controller (via useYouTubePlayer).
 
 export const PlayerState = Object.freeze({
   UNSTARTED: -1,
@@ -14,7 +12,6 @@ const API_SRC = 'https://www.youtube.com/iframe_api';
 const API_TIMEOUT_MS = 15000;
 let apiPromise = null;
 
-/** Load the IFrame API script exactly once; resolves with window.YT. */
 export function loadYouTubeApi() {
   if (window.YT?.Player) return Promise.resolve(window.YT);
   if (apiPromise) return apiPromise;
@@ -76,19 +73,11 @@ export function describePlayerError(code) {
   return ERROR_MESSAGES[code] || 'This video could not be played.';
 }
 
-/**
- * Operations are safe to call at any time: they are no-ops until the player is ready,
- * and after destroy(). The owner is told about readiness through callbacks.
- */
 export class YouTubePlayerController {
   #player = null;
   #ready = false;
   #destroyed = false;
 
-  /**
-   * @param {HTMLElement} host  container that the API will fill with an iframe
-   * @param {{onReady?:Function,onStateChange?:Function,onError?:Function,onLoadFailed?:Function}} handlers
-   */
   constructor(host, handlers = {}, options = {}) {
     this.host = host;
     this.handlers = handlers;
@@ -105,7 +94,6 @@ export class YouTubePlayerController {
     }
     if (this.#destroyed) return;
 
-    // The API replaces its target node, so give it a throwaway child to own.
     const mount = document.createElement('div');
     this.host.appendChild(mount);
     this.#player = new YT.Player(mount, {
@@ -114,7 +102,7 @@ export class YouTubePlayerController {
       videoId,
       playerVars: {
         enablejsapi: 1,
-        controls: 0, // all control goes through WatchAlong so it can be role-checked
+        controls: 0,
         disablekb: 1,
         rel: 0,
         showinfo: 0,
@@ -211,9 +199,10 @@ export class YouTubePlayerController {
     try {
       this.#player?.destroy();
     } catch {
-      /* iframe already gone */
+
     }
     this.#player = null;
     this.host.replaceChildren();
   }
 }
+

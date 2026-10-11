@@ -14,16 +14,6 @@ import {
   sanitizeDisplayName,
 } from './roomValidation.js';
 
-/**
- * Pure-ish room business logic. No Socket.IO in here: every method takes the
- * verified identity ({ roomId, participantId, socketId }) the socket layer resolved,
- * re-checks it against room state, and returns data for the caller to broadcast.
- *
- * Timer-driven changes (reconnect-grace expiry) are announced via EventEmitter:
- *   'participant_left'   { roomId, participant, reason, newHostId }
- *   'room_closed'        { roomId }
- *   'participant_status' { roomId, participantId, connected }
- */
 export class RoomService extends EventEmitter {
   constructor({ config = loadConfig(), store = new RoomStore(), authService = null, now = () => Date.now() } = {}) {
     super();
@@ -31,16 +21,14 @@ export class RoomService extends EventEmitter {
     this.store = store;
     this.authService = authService;
     this.now = now;
-    this.graceTimers = new Map(); // `${roomId}:${participantId}` -> Timeout
+    this.graceTimers = new Map();
   }
-
-  // ---------- Lifecycle ----------
 
   createRoom({ displayName, videoInput, socketId, user = null }) {
     if (this.config.auth?.required && this.config.auth.hostRequiresAccount && (!user || user.isGuest)) {
       throw new AppError(ErrorCodes.ACCOUNT_REQUIRED, 'Create an account or log in to host a room. Guests can join rooms.');
     }
-    // With auth on, the name comes from the verified account, never from the payload.
+
     const name = sanitizeDisplayName(user?.displayName ?? displayName, this.config.limits.maxDisplayNameLength);
     const videoId = parseOptionalVideo(videoInput);
 
@@ -51,25 +39,18 @@ export class RoomService extends EventEmitter {
       creatorUserId: user?.id ?? null,
       playback: { videoId, status: 'paused', position: 0, updatedAt: this.now(), revision: 0 },
     });
-    // The creator's role is assigned here, never taken from the payload.
+
     const host = this.#addParticipant(room, name, Roles.HOST, socketId, user?.id ?? null);
     room.hostId = host.id;
     this.store.set(room);
     return { room, participant: host };
   }
 
-  /**
-   * Join or rejoin. Returns { room, participant, rejoined, displacedSocketId }.
-   * A valid reconnect token restores the *same seat* (and whatever role the room
-   * state currently says that seat has). A missing/unknown token always yields a
-   * fresh Participant seat.
-   */
   joinRoom({ roomId, displayName, token, socketId, user = null }) {
     const room = this.#requireRoom(roomId);
     const userId = user?.id ?? null;
     const removedMsg = 'You were removed from this room by the host.';
 
-    // A kicked account stays kicked even if it clears its reconnect token.
     if (userId && room.removedUserIds.has(userId)) {
       throw new AppError(ErrorCodes.REMOVED_FROM_ROOM, removedMsg);
     }
@@ -78,18 +59,17 @@ export class RoomService extends EventEmitter {
         throw new AppError(ErrorCodes.REMOVED_FROM_ROOM, removedMsg);
       }
       const existing = [...room.participants.values()].find((p) => tokensMatch(p.token, token));
-      // The token must belong to the same account that owns the seat.
+
       if (existing && (!userId || !existing.userId || existing.userId === userId)) {
         return this.#reattach(room, existing, socketId);
       }
     }
-    // Same account, same seat: works across devices/browsers without a token.
+
     if (userId) {
       const owned = [...room.participants.values()].find((p) => p.userId === userId);
       if (owned) return this.#reattach(room, owned, socketId);
     }
 
-    // Same live socket asking twice must not create a second seat.
     const sameSocket = [...room.participants.values()].find((p) => p.socketId === socketId);
     if (sameSocket) return { room, participant: sameSocket, rejoined: true, displacedSocketId: null };
 
@@ -99,9 +79,6 @@ export class RoomService extends EventEmitter {
 
     const isRegistered = Boolean(user && !user.isGuest);
 
-    // Role assignment:
-    // Logged in users join as PARTICIPANT.
-    // Unlogged-in users (guests) join as VIEWER.
     const role = (!this.config.auth?.required || isRegistered) ? Roles.PARTICIPANT : Roles.VIEWER;
     const name = sanitizeDisplayName(user?.displayName ?? displayName, this.config.limits.maxDisplayNameLength);
     const participant = this.#addParticipant(room, name, role, socketId, userId);
@@ -113,11 +90,10 @@ export class RoomService extends EventEmitter {
     this.#removeParticipant(room, participant, 'left');
   }
 
-  /** Called when a socket drops. The seat is kept for a grace period. */
   handleDisconnect({ roomId, participantId, socketId }) {
     const room = this.store.get(roomId);
     const participant = room?.participants.get(participantId);
-    if (!participant || participant.socketId !== socketId) return; // stale socket
+    if (!participant || participant.socketId !== socketId) return;
     participant.socketId = null;
     participant.connected = false;
     this.emit('participant_status', { roomId, participantId, connected: false });
@@ -131,12 +107,6 @@ export class RoomService extends EventEmitter {
     this.graceTimers.set(this.#timerKey(roomId, participantId), timer);
   }
 
-  // ---------- Authorization gate ----------
-
-  /**
-   * Every protected operation starts here. Verifies that the claimed participant
-   * exists in the claimed room AND is currently bound to this very socket.
-   */
   requireMember({ roomId, participantId, socketId }) {
     const room = this.store.get(roomId);
     const participant = room?.participants.get(participantId);
@@ -145,8 +115,6 @@ export class RoomService extends EventEmitter {
     }
     return { room, participant };
   }
-
-  // ---------- Playback ----------
 
   applyPlaybackCommand(identity, command) {
     const { room, participant } = this.requireMember(identity);
@@ -168,7 +136,7 @@ export class RoomService extends EventEmitter {
     if (type === 'seek' && !hasPosition) {
       throw new AppError(ErrorCodes.INVALID_POSITION, 'A seek needs a position.');
     }
-    // For play/pause the controller may report its exact position; otherwise use the server estimate.
+
     const position = hasPosition ? parsePosition(command.position, maxSeek) : this.currentPosition(room);
 
     const status = type === 'seek' ? room.playback.status : type === 'play' ? 'playing' : 'paused';
@@ -184,18 +152,15 @@ export class RoomService extends EventEmitter {
     return { room, actor: participant, action: { type: 'change_video', videoId } };
   }
 
-  /** Authoritative position "now": the last known position plus elapsed time if playing. */
   currentPosition(room) {
     const { status, position, updatedAt } = room.playback;
     if (status !== 'playing') return position;
     return position + Math.max(0, this.now() - updatedAt) / 1000;
   }
 
-  // ---------- Roles & moderation ----------
-
   assignRole(identity, targetId, roleInput) {
     const { room, participant: actor } = this.requireMember(identity);
-    assertCan(actor, Actions.MANAGE_ROLES); // participants/moderators stop here, incl. self-promotion
+    assertCan(actor, Actions.MANAGE_ROLES);
     const role = parseAssignableRole(roleInput);
     const target = this.#requireTarget(room, targetId);
 
@@ -209,7 +174,7 @@ export class RoomService extends EventEmitter {
     }
 
     if (role === Roles.HOST) {
-      // Ownership transfer: the previous host stays on as a moderator.
+
       target.role = Roles.HOST;
       actor.role = Roles.MODERATOR;
       room.hostId = target.id;
@@ -232,8 +197,6 @@ export class RoomService extends EventEmitter {
     room.participants.delete(target.id);
     return { room, actor, target };
   }
-
-  // ---------- Chat & Reactions ----------
 
   addChatMessage(identity, textInput) {
     const { room, participant: actor } = this.requireMember(identity);
@@ -283,8 +246,6 @@ export class RoomService extends EventEmitter {
     return { room, actor, reaction };
   }
 
-  // ---------- Change Requests (Approval Workflow) ----------
-
   requestChange(identity, { type, payload }) {
     const { room, participant: actor } = this.requireMember(identity);
     assertCan(actor, Actions.REQUEST_CHANGE);
@@ -322,7 +283,7 @@ export class RoomService extends EventEmitter {
 
   respondChangeRequest(identity, { requestId, approved }) {
     const { room, participant: actor } = this.requireMember(identity);
-    // Only host or moderator can approve/decline change requests
+
     assertCan(actor, Actions.CHANGE_VIDEO);
 
     const request = typeof room.getChangeRequest === 'function' ? room.getChangeRequest(requestId) : null;
@@ -344,9 +305,6 @@ export class RoomService extends EventEmitter {
     return { room, actor, request, approved: Boolean(approved), actionResult };
   }
 
-  // ---------- Snapshot ----------
-
-  /** Client-safe view of a room. Never includes tokens or socket ids. */
   snapshot(room) {
     const participants = [...room.participants.values()]
       .sort((a, b) => a.joinedAt - b.joinedAt)
@@ -360,7 +318,7 @@ export class RoomService extends EventEmitter {
       playback: {
         videoId: room.playback.videoId,
         status: room.playback.status,
-        position: this.currentPosition(room), // extrapolated to "now" so clients need no clock sync
+        position: this.currentPosition(room),
         revision: room.playback.revision,
       },
       chat: typeof room.getRecentChat === 'function' ? room.getRecentChat(40) : [],
@@ -388,8 +346,6 @@ export class RoomService extends EventEmitter {
     for (const timer of this.graceTimers.values()) clearTimeout(timer);
     this.graceTimers.clear();
   }
-
-  // ---------- Internals ----------
 
   #requireRoom(roomId) {
     const room = this.store.get(roomId);
@@ -436,7 +392,6 @@ export class RoomService extends EventEmitter {
     };
   }
 
-  /** Remove a seat, hand the room to a successor if needed, delete the room when empty. */
   #removeParticipant(room, participant, reason) {
     this.#clearGraceTimer(room.id, participant.id);
     room.participants.delete(participant.id);
@@ -446,8 +401,7 @@ export class RoomService extends EventEmitter {
       this.store.delete(room.id);
       this.emit('room_closed', { roomId: room.id });
     } else if (participant.id === room.hostId) {
-      // Host-transfer policy: promote the longest-standing moderator, else the longest-standing
-      // connected participant, else anyone left. The room is never left without a host.
+
       const successor = this.#pickSuccessor(room);
       successor.role = Roles.HOST;
       room.hostId = successor.id;
@@ -477,3 +431,4 @@ export class RoomService extends EventEmitter {
     this.graceTimers.delete(key);
   }
 }
+

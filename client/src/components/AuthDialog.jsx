@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 
 export default function AuthDialog({ open, onClose, onAuthSuccess }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
@@ -172,3 +172,4 @@ export default function AuthDialog({ open, onClose, onAuthSuccess }) {
     </Dialog>
   );
 }
+

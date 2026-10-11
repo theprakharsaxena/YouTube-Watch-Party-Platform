@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { YouTubePlayerController } from './youtubePlayer.js';
 
-/**
- * Creates and maintains a secondary, muted, synchronized YouTube player
- * that runs behind the card. Provides true, 1:1 real-time frame-accurate
- * video lighting that reacts instantly to video scene cuts and colors.
- */
 export default function useAmbientSyncPlayer({ videoId, playing, position, enabled }) {
   const hostRef = useRef(null);
   const controllerRef = useRef(null);
@@ -45,10 +40,10 @@ export default function useAmbientSyncPlayer({ videoId, playing, position, enabl
           }
         },
         onError: () => {
-          /* Silent fallback to base ambient layer on error */
+
         },
         onLoadFailed: () => {
-          /* Silent fallback to base ambient layer */
+
         },
       },
       {
@@ -77,7 +72,6 @@ export default function useAmbientSyncPlayer({ videoId, playing, position, enabl
     };
   }, [enabled, videoId]);
 
-  // Sync play/pause state
   useEffect(() => {
     const controller = controllerRef.current;
     if (!controller || !isReadyRef.current) return;
@@ -90,7 +84,6 @@ export default function useAmbientSyncPlayer({ videoId, playing, position, enabl
     }
   }, [playing]);
 
-  // Sync position on seek / drift
   useEffect(() => {
     const controller = controllerRef.current;
     if (!controller || !isReadyRef.current || typeof position !== 'number') return;
@@ -102,3 +95,4 @@ export default function useAmbientSyncPlayer({ videoId, playing, position, enabl
 
   return hostRef;
 }
+

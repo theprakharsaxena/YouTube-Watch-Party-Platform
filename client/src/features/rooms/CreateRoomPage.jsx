@@ -54,7 +54,7 @@ export default function CreateRoomPage() {
         localStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
         sessionStorage.setItem(`sidelight:host_room:${roomId}`, 'true');
       } catch {
-        /* storage unavailable */
+
       }
       navigate(`/r/${formatRoomCode(roomId)}`, { replace: true });
     } catch (error) {
@@ -171,3 +171,4 @@ export default function CreateRoomPage() {
     </>
   );
 }
+

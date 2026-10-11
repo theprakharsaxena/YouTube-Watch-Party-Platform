@@ -267,7 +267,6 @@ export function createApp({ config, roomService, authService = new AuthService()
     res.json({ status: 'ok', rooms: roomService.store.size, uptimeSeconds: Math.round(process.uptime()) });
   });
 
-  // Authentication endpoints
   app.post('/api/auth/register', (req, res) => {
     try {
       const result = authService.register(req.body ?? {});
@@ -306,7 +305,6 @@ export function createApp({ config, roomService, authService = new AuthService()
     res.json({ user });
   });
 
-  // Lets the join screen validate a code before opening a socket. Reveals existence/size and host info.
   app.get('/api/rooms/:roomId', (req, res) => {
     try {
       const roomId = normalizeRoomId(req.params.roomId);
@@ -324,7 +322,7 @@ export function createApp({ config, roomService, authService = new AuthService()
             info.isHost = Boolean(isHost);
           }
         } catch {
-          // Ignore invalid auth token
+
         }
       }
 
@@ -337,7 +335,6 @@ export function createApp({ config, roomService, authService = new AuthService()
 
   app.use((_req, res) => res.status(404).json({ code: 'NOT_FOUND', message: 'Not found.' }));
 
-  // eslint-disable-next-line no-unused-vars
   app.use((error, _req, res, _next) => {
     console.error('[http]', error);
     res.status(500).json({ code: 'INTERNAL', message: 'Something went wrong on the server.' });
@@ -345,3 +342,4 @@ export function createApp({ config, roomService, authService = new AuthService()
 
   return app;
 }
+

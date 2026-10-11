@@ -7,10 +7,6 @@ import ConfirmActionDialog from '../roles/ConfirmActionDialog.jsx';
 import ChatPanel from '../chat/ChatPanel.jsx';
 import { useToast } from '../../components/Toast.jsx';
 
-/**
- * Side rail with dual tabs: People and Live Chat.
- * On narrow screens it becomes a bottom sheet toggled from the top bar.
- */
 export default function ParticipantRail({
   participants,
   meId,
@@ -132,3 +128,4 @@ export default function ParticipantRail({
     </>
   );
 }
+

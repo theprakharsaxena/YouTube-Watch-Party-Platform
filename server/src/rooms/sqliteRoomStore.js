@@ -4,10 +4,6 @@ import { dirname, resolve } from 'node:path';
 import { RoomStore } from './roomManager.js';
 import { Room } from './Room.js';
 
-/**
- * SQLite-backed Persistent Room Store using Node.js built-in node:sqlite.
- * Stores room state, playback timeline, and chat log in a robust SQL database.
- */
 export class SqliteRoomStore extends RoomStore {
   #db;
 
@@ -46,7 +42,7 @@ export class SqliteRoomStore extends RoomStore {
         const room = Room.fromJSON(parsed);
         super.set(room);
       } catch {
-        /* skip corrupted rows */
+
       }
     }
   }
@@ -72,3 +68,4 @@ export class SqliteRoomStore extends RoomStore {
     return deleted;
   }
 }
+

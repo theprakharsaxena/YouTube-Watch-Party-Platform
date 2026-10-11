@@ -17,7 +17,6 @@ const COPY = {
   }),
 };
 
-/** Confirmation for the two irreversible-ish host actions. `action` = { type, participant } | null */
 export default function ConfirmActionDialog({ action, onCancel, onConfirm }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -45,3 +44,4 @@ export default function ConfirmActionDialog({ action, onCancel, onConfirm }) {
     </Dialog>
   );
 }
+

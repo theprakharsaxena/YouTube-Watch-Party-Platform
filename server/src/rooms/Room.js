@@ -1,9 +1,6 @@
 import { Roles } from '../auth/permissions.js';
 import { Participant } from './Participant.js';
 
-/**
- * Encapsulates room state, participant collection, playback, and message log.
- */
 export class Room {
   constructor({
     id,
@@ -34,8 +31,6 @@ export class Room {
     this.maxChatHistory = 100;
     this.pendingRequests = new Map();
   }
-
-  // ---------- Participants ----------
 
   addParticipant(participant) {
     this.participants.set(participant.id, participant);
@@ -78,13 +73,10 @@ export class Room {
       .sort((a, b) => a.joinedAt - b.joinedAt);
   }
 
-  // ---------- Host & Roles ----------
-
   setHost(newHostId) {
     const target = this.participants.get(newHostId);
     if (!target) return false;
 
-    // Demote current host if different
     if (this.hostId && this.hostId !== newHostId) {
       const currentHost = this.participants.get(this.hostId);
       if (currentHost) {
@@ -101,8 +93,6 @@ export class Room {
     return this.setHost(newHostId);
   }
 
-  // ---------- Playback ----------
-
   updatePlayback({ status, position, videoId, now = Date.now() }) {
     if (status !== undefined) this.playback.status = status;
     if (position !== undefined) this.playback.position = position;
@@ -111,8 +101,6 @@ export class Room {
     this.playback.revision += 1;
     return this.playback;
   }
-
-  // ---------- Chat & Reactions ----------
 
   addChatMessage({ senderId, senderName, senderRole, text, type = 'user', now = Date.now() }) {
     const message = {
@@ -134,8 +122,6 @@ export class Room {
   getRecentChat(limit = 50) {
     return this.chatMessages.slice(-limit);
   }
-
-  // ---------- Change Requests (Approval Workflow) ----------
 
   addChangeRequest({ requesterId, requesterName, requesterRole, type, payload, now = Date.now() }) {
     const requestId = 'req_' + Math.random().toString(36).slice(2, 9);
@@ -164,10 +150,8 @@ export class Room {
     return Array.from(this.pendingRequests.values());
   }
 
-  // ---------- Snapshots & Serialization ----------
-
   toSnapshot(now = Date.now()) {
-    // Current projected position if playing
+
     let currentPos = this.playback.position;
     if (this.playback.status === 'playing') {
       const elapsed = Math.max(0, (now - this.playback.updatedAt) / 1000);
@@ -223,3 +207,4 @@ export class Room {
     });
   }
 }
+

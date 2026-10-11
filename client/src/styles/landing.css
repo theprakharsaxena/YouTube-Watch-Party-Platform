@@ -5,7 +5,6 @@
   overflow-x: hidden;
 }
 
-/* Ambient interactive canvas backdrop */
 .interactive-canvas {
   position: fixed;
   inset: 0;
@@ -15,7 +14,6 @@
   z-index: 0;
 }
 
-/* Top screen hero fold: occupies full viewport height so Section 2 is hidden below the fold */
 .landing__hero-fold {
   position: relative;
   z-index: 2;
@@ -169,10 +167,6 @@ main {
   width: 100%;
 }
 
-/* ==========================================================================
-   INTERACTIVE ROOM PREVIEW (3D TILT, LIVE SCREEN & PARTICLES)
-   ========================================================================== */
-
 .preview {
   margin: 0;
   display: grid;
@@ -195,7 +189,6 @@ main {
   box-shadow: 0 32px 64px -20px rgba(0, 0, 0, 0.85), 0 0 32px -4px rgba(242, 166, 90, 0.18), 0 0 0 1px rgba(242, 166, 90, 0.28);
 }
 
-/* Specular glare sheen overlay */
 .preview__glare {
   position: absolute;
   inset: 0;
@@ -306,7 +299,6 @@ main {
   transform: translateY(-1px);
 }
 
-/* Quick URL Drawer */
 .preview__drawer {
   padding: 10px 14px;
   background: rgba(11, 16, 32, 0.95);
@@ -360,7 +352,6 @@ main {
   color: var(--ivory);
 }
 
-/* Wrapper already shows the focus ring; avoid a second one from the global rule */
 .preview__url-input:focus,
 .preview__url-input:focus-visible {
   outline: none;
@@ -464,10 +455,6 @@ main {
   min-width: 0;
 }
 
-/* ==========================================================================
-   INTERACTIVE SCREEN & LIVE AUDIO VISUALIZER
-   ========================================================================== */
-
 .preview__screen {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -484,7 +471,6 @@ main {
   cursor: default;
 }
 
-/* Real YouTube Player wrap & responsive frame */
 .preview__player-wrap {
   position: absolute;
   inset: 0;
@@ -514,7 +500,6 @@ main {
   display: block;
 }
 
-/* Transparent shield on top to intercept clicks for reaction bursts without pausing accidentally */
 .preview__shield {
   position: absolute;
   inset: 0;
@@ -643,7 +628,6 @@ main {
   opacity: 1;
 }
 
-/* Error Overlay for Restricted Videos */
 .preview__error-overlay {
   position: absolute;
   inset: 0;
@@ -695,7 +679,6 @@ main {
   transform: translateY(-1px);
 }
 
-/* Sound toggle: bare icon, no background or padding */
 .sound-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -715,7 +698,6 @@ main {
   transform: scale(1.1);
 }
 
-/* Floating Live Reactions */
 .preview__floating-container {
   position: absolute;
   inset: 0;
@@ -773,7 +755,6 @@ main {
   color: var(--ivory);
 }
 
-/* Playback Status Row */
 .preview__row {
   display: flex;
   flex-wrap: wrap;
@@ -819,7 +800,6 @@ main {
   transition: color var(--t-med) var(--ease);
 }
 
-/* Higher specificity so room.css base sizes (0.86rem / 0.8rem) don't override */
 .preview__row .status-pill,
 .preview__row .sync-note {
   font-size: 0.66rem;
@@ -835,7 +815,6 @@ main {
   animation: pulseDot 1s ease-in-out infinite;
 }
 
-/* Transport Controls & Scrubber */
 .preview__transport {
   display: flex;
   align-items: center;
@@ -926,7 +905,6 @@ main {
   flex-shrink: 0;
 }
 
-/* Quick Reaction Palette */
 .preview__reaction-bar {
   display: flex;
   align-items: center;
@@ -971,10 +949,6 @@ main {
 .reaction-bubble-btn:active {
   transform: scale(1);
 }
-
-/* ==========================================================================
-   PARTICIPANTS SIDEBAR & INTERACTIVE CHEERS
-   ========================================================================== */
 
 .preview__rail-wrap {
   position: relative;
@@ -1117,10 +1091,6 @@ main {
   color: var(--amber);
 }
 
-/* ==========================================================================
-   INTERACTIVE SYNC FLOW SIMULATOR (HOW THE SYNC WORKS)
-   ========================================================================== */
-
 .section {
   max-width: 1040px;
   margin: 0 auto;
@@ -1229,7 +1199,6 @@ main {
   box-shadow: 0 0 16px rgba(239, 123, 106, 0.35);
 }
 
-/* Visual Stage Diagram */
 .sync-flow__stage {
   margin-top: 28px;
   display: grid;
@@ -1342,7 +1311,6 @@ main {
   box-shadow: 0 0 16px rgba(143, 196, 162, 0.3);
 }
 
-/* Connecting Cables & Flow Animation */
 .sync-cable {
   position: relative;
   height: 2px;
@@ -1412,7 +1380,6 @@ main {
   color: var(--amber);
 }
 
-/* Steps */
 .steps {
   margin-top: 28px;
   display: grid;
@@ -1457,7 +1424,6 @@ main {
   background: rgba(242, 166, 90, 0.08);
 }
 
-/* Permissions Table */
 .perm-table-wrap {
   margin-top: 24px;
   overflow-x: auto;
@@ -1535,11 +1501,6 @@ main {
   max-width: 52ch;
 }
 
-/* ==========================================================================
-   RESPONSIVE LAYOUTS
-   ========================================================================== */
-
-/* 1. Compact Desktops, Netbooks & Tablets in Landscape (<= 1040px) */
 @media (max-width: 1040px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
@@ -1595,7 +1556,6 @@ main {
   }
 }
 
-/* 2. Tablets in Portrait & Medium Screens (<= 768px) */
 @media (max-width: 768px) {
   .hero {
     gap: 32px;
@@ -1616,7 +1576,6 @@ main {
   }
 }
 
-/* 3. Phablets & Large Phones (<= 640px) */
 @media (max-width: 640px) {
   .landing__nav-links a:not(.btn) {
     display: none;
@@ -1655,7 +1614,6 @@ main {
     text-align: left;
   }
 
-  /* Preview Card adapts cleanly */
   .preview__window {
     border-radius: var(--radius-md);
   }
@@ -1714,7 +1672,6 @@ main {
   }
 }
 
-/* 4. Mobile devices (<= 520px) */
 @media (max-width: 520px) {
   .landing__nav {
     padding: 12px clamp(12px, 3.5vw, 16px);
@@ -1773,7 +1730,6 @@ main {
   }
 }
 
-/* 5. Compact Mobile Screens (<= 420px: iPhone SE, Android standard) */
 @media (max-width: 420px) {
   .landing__nav-join {
     display: none;
@@ -1820,3 +1776,4 @@ main {
     max-width: 120px;
   }
 }
+

@@ -80,3 +80,4 @@ export default function RoomTopBar({ roomId, connection, participantCount, copie
     </header>
   );
 }
+

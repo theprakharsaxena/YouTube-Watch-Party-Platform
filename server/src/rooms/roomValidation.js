@@ -1,7 +1,6 @@
 import { AppError, ErrorCodes } from '../utils/errors.js';
 import { Roles } from '../auth/permissions.js';
 
-// Room codes avoid look-alike characters (0/O, 1/I/L).
 export const ROOM_ID_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export const ROOM_ID_LENGTH = 10;
 const ROOM_ID_PATTERN = new RegExp(`^[${ROOM_ID_ALPHABET}]{${ROOM_ID_LENGTH}}$`);
@@ -24,7 +23,7 @@ export function assertPayloadObject(payload) {
 
 export function sanitizeDisplayName(value, maxLength) {
   if (typeof value !== 'string') throw new AppError(ErrorCodes.INVALID_NAME, 'Enter a display name.');
-  // Collapse whitespace and strip control characters.
+
   const name = value.replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim();
   if (name.length < 1) throw new AppError(ErrorCodes.INVALID_NAME, 'Enter a display name.');
   if (name.length > maxLength) {
@@ -33,7 +32,6 @@ export function sanitizeDisplayName(value, maxLength) {
   return name;
 }
 
-/** Accepts "abcde-fghjk", lowercase, spaces. Returns canonical form or throws. */
 export function normalizeRoomId(value) {
   if (typeof value !== 'string') throw new AppError(ErrorCodes.INVALID_ROOM, 'Enter a valid room code.');
   const id = value.replace(/[\s-]/g, '').toUpperCase();
@@ -41,11 +39,6 @@ export function normalizeRoomId(value) {
   return id;
 }
 
-/**
- * Extract an 11-character YouTube video ID from a URL or a bare ID.
- * Pure string parsing: the server never fetches user-supplied URLs.
- * Returns null when no valid ID is found.
- */
 export function extractVideoId(input) {
   if (typeof input !== 'string') return null;
   const text = input.trim();
@@ -72,7 +65,6 @@ export function extractVideoId(input) {
   return candidate && VIDEO_ID_PATTERN.test(candidate) ? candidate : null;
 }
 
-/** Optional video input (create_room). Returns null when empty, throws when present but invalid. */
 export function parseOptionalVideo(input) {
   if (input === undefined || input === null || (typeof input === 'string' && input.trim() === '')) return null;
   const id = extractVideoId(input);
@@ -114,3 +106,4 @@ export function parseOptionalToken(value) {
   }
   return value;
 }
+

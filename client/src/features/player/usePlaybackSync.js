@@ -2,20 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerState } from './youtubePlayer.js';
 import { SYNC_CONFIG, decideDriftAction, expectedPosition } from '../../utils/sync.js';
 
-/**
- * Makes a local YouTube player follow the room's authoritative playback state.
- *
- * Two mechanisms:
- *  1. Command apply  - when the room revision / status / video changes, hard-apply it.
- *  2. Drift control  - while playing, periodically compare against the expected position
- *                      and correct only when the drift is meaningful (see SYNC_CONFIG).
- *
- * This hook only ever *reads* from the room and drives the player. User-originated
- * commands are emitted by explicit UI handlers, so remote updates can never echo back.
- */
 export function usePlaybackSync({ controller, ready, playback, receivedAt, playerState }) {
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  // 'idle' (nothing to measure) | 'synced' | 'adjusting' (drift above the ignore threshold)
+
   const [syncStatus, setSyncStatus] = useState('idle');
   const loadedVideoRef = useRef(null);
   const lastSeekAtRef = useRef(0);
@@ -27,10 +16,8 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     latestRef.current = { playback, receivedAt };
   });
 
-  /** True for a short window after we drive the player, so its events are not mistaken for user actions. */
   const isApplyingRemote = useCallback(() => Date.now() < applyingUntilRef.current, []);
 
-  // 1. Hard-apply authoritative commands.
   useEffect(() => {
     if (!ready || !controller || !playback.videoId) return undefined;
     const { playback: current, receivedAt: at } = latestRef.current;
@@ -62,7 +49,7 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
       setAutoplayBlocked(false);
       return undefined;
     }
-    // Browsers may refuse unmuted autoplay. If nothing is playing shortly after, ask for a click.
+
     const timer = setTimeout(() => {
       const state = controller.getState();
       if (state !== PlayerState.PLAYING && state !== PlayerState.BUFFERING) setAutoplayBlocked(true);
@@ -74,7 +61,6 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     if (playerState === PlayerState.PLAYING) setAutoplayBlocked(false);
   }, [playerState]);
 
-  /** Notify sync hook that the user has performed an explicit seek or play/pause transition. */
   const notifySeek = useCallback((targetTime) => {
     lastSeekAtRef.current = Date.now();
     applyingUntilRef.current = Date.now() + 1500;
@@ -82,11 +68,10 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     setSyncStatus('synced');
   }, []);
 
-  // 2. Gentle drift correction while the room is playing.
   useEffect(() => {
     if (!ready || !controller || playback.status !== 'playing') return undefined;
     const interval = setInterval(() => {
-      if (controller.getState() !== PlayerState.PLAYING) return; // never fight buffering/paused states
+      if (controller.getState() !== PlayerState.PLAYING) return;
       const { playback: current, receivedAt: at } = latestRef.current;
       const target = expectedPosition(current, at);
       const drift = controller.getCurrentTime() - target;
@@ -114,7 +99,6 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
     };
   }, [ready, controller, playback.status]);
 
-  /** Called from a real click: satisfies the browser's user-gesture requirement for sound. */
   const resumeFromGesture = useCallback(() => {
     if (!controller) return;
     const { playback: current, receivedAt: at } = latestRef.current;
@@ -125,3 +109,4 @@ export function usePlaybackSync({ controller, ready, playback, receivedAt, playe
 
   return { autoplayBlocked, resumeFromGesture, isApplyingRemote, syncStatus, notifySeek };
 }
+

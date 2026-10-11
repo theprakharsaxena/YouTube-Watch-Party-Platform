@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Crown, Eye, MoreVertical, ShieldCheck, ShieldOff, UserCheck, UserMinus } from 'lucide-react';
 
-/**
- * Host-only per-participant menu. Positioned with `fixed` so the scrolling list can't clip it.
- * Keyboard: Enter/Space opens, Arrow keys move, Escape closes and returns focus.
- */
 export default function ParticipantMenu({ participant, onChooseAction }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, right: 0 });
@@ -104,3 +100,4 @@ export default function ParticipantMenu({ participant, onChooseAction }) {
     </>
   );
 }
+

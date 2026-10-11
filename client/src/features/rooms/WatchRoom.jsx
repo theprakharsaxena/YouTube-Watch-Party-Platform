@@ -26,7 +26,6 @@ const ROLE_NOTES = {
   viewer: { icon: Eye, text: 'You are watching as a guest viewer. Log in to become a participant and suggest video changes.' },
 };
 
-/** Re-render a few times per second so the clock tracks the extrapolated room position. */
 function useNow(intervalMs) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -103,7 +102,7 @@ export default function WatchRoom() {
         else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
       }
     } catch {
-      /* ignore */
+
     } finally {
       setTimeout(() => {
         fsPendingRef.current = false;
@@ -118,12 +117,11 @@ export default function WatchRoom() {
     hudTimerRef.current = setTimeout(() => setShowFsHud(false), 2500);
   }, [isFullscreen]);
 
-  // A controller's player reaching the end pauses the room there (never from remote-applied events).
   useEffect(() => {
     if (playerState === PlayerState.ENDED && canControl && playing && !sync.isApplyingRemote()) {
       room.sendPlayback('pause', duration || undefined);
     }
-  }, [playerState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [playerState]);
 
   const handleInvite = useCallback(async () => {
     const ok = await copyText(inviteUrl(state.roomId));
@@ -172,7 +170,7 @@ export default function WatchRoom() {
     try {
       localStorage.setItem('watchalong_volume', String(clamped));
     } catch {
-      /* ignore */
+
     }
 
     if (!controller) return;
@@ -214,12 +212,11 @@ export default function WatchRoom() {
         controller.setVolume(volume);
       }
     }
-  }, [ready, controller]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready, controller]);
 
   const closeRail = useCallback(() => setRailOpen(false), []);
   const RoleIcon = ROLE_NOTES[role]?.icon ?? Eye;
 
-  // Keyboard shortcuts: F for fullscreen, Space for play/pause, M for mute
   useEffect(() => {
     const onKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || videoDialogOpen || leaveOpen) return;
@@ -236,7 +233,7 @@ export default function WatchRoom() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [toggleFullscreen, canControl, hasVideo, videoDialogOpen, leaveOpen, playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [toggleFullscreen, canControl, hasVideo, videoDialogOpen, leaveOpen, playing]);
 
   function leave() {
     room.leaveRoom();
@@ -477,3 +474,4 @@ export default function WatchRoom() {
     </div>
   );
 }
+

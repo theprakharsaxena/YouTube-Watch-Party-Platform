@@ -3,10 +3,6 @@ import { getSocket } from '../services/socket.js';
 
 const CONNECT_TIMEOUT_MS = 10000;
 
-/**
- * Tracks the shared socket's connection status and offers ensureConnected().
- * Status: connecting | connected | reconnecting | disconnected
- */
 export function useSocket() {
   const socket = getSocket();
   const [status, setStatus] = useState(socket.connected ? 'connected' : 'disconnected');
@@ -72,3 +68,4 @@ export function useSocket() {
 
   return { socket, status, ensureConnected };
 }
+

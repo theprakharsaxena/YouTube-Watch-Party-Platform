@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
       const raw = localStorage.getItem(USER_KEY) || localStorage.getItem(LEGACY_USER_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      // Clean out legacy username-only records
+
       if (parsed && !parsed.displayName && parsed.username) {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(TOKEN_KEY);
@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
         sock.connect();
       }
     } catch {
-      /* socket not initialized yet */
+
     }
   };
 
@@ -149,3 +149,4 @@ export function useAuth() {
   if (!context) throw new Error('useAuth must be used inside <AuthProvider>');
   return context;
 }
+

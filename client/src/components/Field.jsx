@@ -1,6 +1,5 @@
 import { useId } from 'react';
 
-/** Labelled input with inline error + hint, wired for assistive tech. */
 export default function Field({ label, error, hint, optional = false, className = '', ...inputProps }) {
   const id = useId();
   const describedBy = [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(' ') || undefined;
@@ -20,3 +19,4 @@ export default function Field({ label, error, hint, optional = false, className 
     </div>
   );
 }
+

@@ -32,7 +32,7 @@ export default function LandingPage() {
 
   return (
     <div className="landing">
-      {/* Interactive ambient particles & cursor constellation backdrop */}
+
       <InteractiveCanvas />
 
       <div className="landing__hero-fold">
@@ -160,3 +160,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

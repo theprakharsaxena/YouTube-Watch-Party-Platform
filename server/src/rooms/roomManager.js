@@ -1,11 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { ROOM_ID_ALPHABET, ROOM_ID_LENGTH } from './roomValidation.js';
 
-/**
- * In-memory room store. This is the only module that knows rooms live in a Map,
- * so a MongoDB-backed store could replace it without touching room/playback logic.
- * Limitation: a server restart drops every room.
- */
 export class RoomStore {
   #rooms = new Map();
 
@@ -29,7 +24,6 @@ export class RoomStore {
     return [...this.#rooms.values()];
   }
 
-  /** ~50 bits of CSPRNG entropy, collision-checked against live rooms. */
   generateUniqueId() {
     for (;;) {
       let id = '';
@@ -40,3 +34,4 @@ export class RoomStore {
     }
   }
 }
+

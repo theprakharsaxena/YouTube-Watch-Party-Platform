@@ -1,4 +1,4 @@
-// Every error that reaches a client has the shape { code, message }.
+
 export const ErrorCodes = {
   INVALID_PAYLOAD: 'INVALID_PAYLOAD',
   INVALID_NAME: 'INVALID_NAME',
@@ -29,10 +29,10 @@ export class AppError extends Error {
   }
 }
 
-/** Convert anything thrown into a safe client payload. Never leaks internals. */
 export function toClientError(error, event) {
   if (error instanceof AppError) {
     return { code: error.code, message: error.message, event };
   }
   return { code: ErrorCodes.INTERNAL, message: 'Something went wrong on the server.', event };
 }
+

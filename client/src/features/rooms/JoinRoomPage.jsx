@@ -7,7 +7,6 @@ import Button from '../../components/Button.jsx';
 import { fetchRoomInfo } from '../../services/api.js';
 import { formatRoomCode, parseRoomInput } from '../../utils/formatters.js';
 
-/** Step 1 of joining: paste a code or invite link; we verify the room exists before moving on. */
 export default function JoinRoomPage() {
   const navigate = useNavigate();
   const [value, setValue] = useState('');
@@ -52,3 +51,4 @@ export default function JoinRoomPage() {
     </FormShell>
   );
 }
+

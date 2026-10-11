@@ -99,3 +99,4 @@ export default function ChatPanel({ messages, meId, onSendMessage, isViewer = fa
     </div>
   );
 }
+

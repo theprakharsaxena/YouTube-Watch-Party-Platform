@@ -33,13 +33,11 @@ button, input { font: inherit; color: inherit; }
 .spin { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---------- Brand ---------- */
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ivory); }
 .brand__word { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: 0.01em; }
 .brand-mark { flex: none; transition: transform var(--t-fast) var(--ease); }
 .brand:hover .brand-mark { transform: scale(1.06); }
 
-/* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 44px; padding: 0 18px; border-radius: var(--radius-md);
@@ -69,7 +67,6 @@ button, input { font: inherit; color: inherit; }
 .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .icon-btn--small { width: 32px; height: 32px; border-radius: var(--radius-sm); }
 
-/* ---------- Forms ---------- */
 .form-stack { display: grid; gap: 18px; }
 .field { display: grid; gap: 6px; }
 .field__label { font-size: 0.88rem; font-weight: 600; color: var(--ivory-dim); }
@@ -110,7 +107,6 @@ button, input { font: inherit; color: inherit; }
 .field__error { font-size: 0.85rem; color: var(--danger); }
 .form-alert { padding: 10px 14px; border-radius: var(--radius-md); background: var(--danger-bg); color: var(--danger); font-size: 0.9rem; border: 1px solid rgba(239, 123, 106, 0.3); }
 
-/* ---------- Auth Dialog Input Box & Tabs ---------- */
 .auth-tabs {
   display: flex;
   background: rgba(10, 14, 25, 0.75);
@@ -188,7 +184,7 @@ button, input { font: inherit; color: inherit; }
 .auth-input-box input::placeholder {
   color: rgba(244, 236, 220, 0.42);
 }
-/* Neutralize WebKit/Chrome autofill rectangular background to blend seamlessly */
+
 .auth-input-box input:-webkit-autofill,
 .auth-input-box input:-webkit-autofill:hover,
 .auth-input-box input:-webkit-autofill:focus,
@@ -215,7 +211,6 @@ button, input { font: inherit; color: inherit; }
   background: rgba(244, 236, 220, 0.08);
 }
 
-/* ---------- Page shells ---------- */
 .shell { min-height: 100vh; display: flex; flex-direction: column; background: radial-gradient(900px 500px at 20% -10%, rgba(239, 123, 106, 0.08), transparent 60%), var(--ink-900); }
 .shell__header { padding: 20px clamp(16px, 4vw, 40px); }
 .shell__main { flex: 1; display: grid; align-content: start; justify-items: center; gap: 18px; padding: clamp(12px, 6vh, 56px) 16px 48px; }
@@ -234,7 +229,6 @@ button, input { font: inherit; color: inherit; }
 .loading-lines span:nth-child(3) { width: 55%; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
-/* ---------- Badges ---------- */
 .role-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; border: 1px solid var(--line-strong); color: var(--ivory-dim); white-space: nowrap; }
 .role-badge--host { color: var(--amber); border-color: rgba(242, 166, 90, 0.45); background: rgba(242, 166, 90, 0.1); }
 .role-badge--moderator { color: var(--coral); border-color: rgba(239, 123, 106, 0.45); background: rgba(239, 123, 106, 0.1); }
@@ -249,7 +243,6 @@ button, input { font: inherit; color: inherit; }
 .avatar { flex: none; width: var(--avatar-size, 32px); height: var(--avatar-size, 32px); border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--avatar-tint) 22%, var(--ink-800)); border: 1px solid color-mix(in srgb, var(--avatar-tint) 55%, transparent); color: var(--avatar-tint); font-size: calc(var(--avatar-size, 32px) * 0.38); font-weight: 600; }
 .avatar--dimmed { opacity: 0.45; }
 
-/* ---------- Dialog ---------- */
 .dialog-overlay {
   position: fixed;
   inset: 0;
@@ -288,7 +281,6 @@ button, input { font: inherit; color: inherit; }
 .dialog__description { color: var(--ivory-dim); font-size: 0.95rem; }
 .dialog__actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 
-/* ---------- Toasts ---------- */
 .toast-region { position: fixed; z-index: 9999; right: 16px; bottom: 16px; display: grid; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; border-radius: var(--radius-md); background: var(--ink-700); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop); font-size: 0.92rem; animation: pop var(--t-med) var(--ease); }
 .toast span { flex: 1; }
@@ -297,7 +289,6 @@ button, input { font: inherit; color: inherit; }
 .toast--error svg:first-child { color: var(--danger); }
 .toast--info svg:first-child { color: var(--amber); }
 
-/* ---------- Menu ---------- */
 .menu { position: fixed; z-index: 60; min-width: 220px; padding: 6px; border-radius: var(--radius-md); background: var(--ink-700); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop); display: grid; }
 .menu__item { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border: 0; background: none; border-radius: var(--radius-sm); cursor: pointer; text-align: left; font-size: 0.92rem; color: var(--ivory); }
 .menu__item:hover, .menu__item:focus-visible { background: rgba(244, 236, 220, 0.09); }
@@ -306,3 +297,4 @@ button, input { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+

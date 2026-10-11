@@ -1,9 +1,6 @@
-// Where the backend lives.
-// Dev: empty string -> same origin, proxied by Vite (see vite.config.js).
-// Prod: VITE_SERVER_URL=https://your-backend.onrender.com
+
 export const SERVER_URL = (import.meta.env.VITE_SERVER_URL || '').replace(/\/$/, '');
 
-/** Check whether a room exists before opening a socket. */
 export async function fetchRoomInfo(roomId, { signal } = {}) {
   let response;
   try {
@@ -26,3 +23,4 @@ export async function fetchRoomInfo(roomId, { signal } = {}) {
   }
   return body;
 }
+

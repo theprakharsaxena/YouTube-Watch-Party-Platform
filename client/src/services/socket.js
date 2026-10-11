@@ -3,7 +3,6 @@ import { SERVER_URL } from './api.js';
 
 let socket = null;
 
-/** One lazily-created socket for the whole app. Reconnection is handled by socket.io. */
 export function getSocket() {
   if (!socket) {
     socket = io(SERVER_URL || undefined, {
@@ -23,8 +22,6 @@ export function getSocket() {
   return socket;
 }
 
-// Lightweight session identity, kept per tab so two tabs can be two different people.
-// The token only proves "same browser session as before"; roles always come from the server.
 const key = (roomId) => `watchalong:session:${roomId}`;
 const legacyKey = (roomId) => `sidelight:session:${roomId}`;
 
@@ -42,7 +39,7 @@ export function saveSession(roomId, session) {
   try {
     sessionStorage.setItem(key(roomId), JSON.stringify(session));
   } catch {
-    /* storage unavailable: reconnect-after-refresh simply won't work */
+
   }
 }
 
@@ -51,6 +48,7 @@ export function clearSession(roomId) {
     sessionStorage.removeItem(key(roomId));
     sessionStorage.removeItem(legacyKey(roomId));
   } catch {
-    /* ignore */
+
   }
 }
+

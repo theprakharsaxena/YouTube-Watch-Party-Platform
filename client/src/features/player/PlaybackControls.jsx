@@ -2,11 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Lock, Maximize, Minimize, Pause, Play, RotateCcw, RotateCw, Volume1, Volume2, VolumeX } from 'lucide-react';
 import { formatTime } from '../../utils/formatters.js';
 
-/**
- * Transport bar.
- * Controllers get a working scrubber and buttons; participants get a read-only progress
- * track and an explanation. (Real enforcement happens on the server.)
- */
 export default function PlaybackControls({
   status,
   position,
@@ -23,7 +18,7 @@ export default function PlaybackControls({
   onVolumeChange,
   onToggleFullscreen,
 }) {
-  const [scrub, setScrub] = useState(null); // local value while dragging or pending seek
+  const [scrub, setScrub] = useState(null);
   const scrubRef = useRef(null);
   const isDraggingRef = useRef(false);
   const pendingCommitRef = useRef(null);
@@ -34,7 +29,6 @@ export default function PlaybackControls({
   const max = duration > 0 ? duration : Math.max(position, 1);
   const shown = scrub ?? Math.min(position, max);
 
-  // Clear pending optimistic scrub once the authoritative position catches up (within 1s)
   useEffect(() => {
     if (pendingCommitRef.current !== null) {
       if (Math.abs(position - pendingCommitRef.current) < 1.0) {
@@ -46,7 +40,6 @@ export default function PlaybackControls({
     }
   }, [position]);
 
-  // Clean up timer on unmount
   useEffect(() => {
     return () => clearTimeout(clearTimerRef.current);
   }, []);
@@ -61,14 +54,14 @@ export default function PlaybackControls({
         : scrubRef.current;
 
     if (target !== null && target !== undefined && !Number.isNaN(target)) {
-      // Debounce rapid identical commits (e.g. pointerup + native change in same burst)
+
       if (now - lastCommitTimeRef.current < 150 && pendingCommitRef.current === target) {
         return;
       }
       lastCommitTimeRef.current = now;
       pendingCommitRef.current = target;
       scrubRef.current = target;
-      setScrub(target); // Keep shown pinned to target optimistically so it never snaps back!
+      setScrub(target);
 
       onSeek(target);
 
@@ -140,7 +133,7 @@ export default function PlaybackControls({
               const val = Number(e.target.value);
               scrubRef.current = val;
               setScrub(val);
-              // For track clicks or keyboard seeks where pointerdown didn't engage:
+
               if (!isDraggingRef.current) {
                 commit(val);
               }
@@ -220,3 +213,4 @@ export default function PlaybackControls({
     </div>
   );
 }
+

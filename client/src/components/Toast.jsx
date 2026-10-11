@@ -55,3 +55,4 @@ export function useToast() {
   if (!context) throw new Error('useToast must be used inside <ToastProvider>');
   return context;
 }
+

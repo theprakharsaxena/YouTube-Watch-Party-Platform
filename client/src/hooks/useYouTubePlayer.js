@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { YouTubePlayerController } from '../features/player/youtubePlayer.js';
 
-/**
- * Owns the lifecycle of one YouTube player instance.
- * Returns a ref to attach to the container plus reactive player facts.
- */
 export function useYouTubePlayer(initialVideoId = undefined) {
   const hostRef = useRef(null);
   const [controller, setController] = useState(null);
@@ -25,7 +21,7 @@ export function useYouTubePlayer(initialVideoId = undefined) {
       onError: (error) => setPlayerError(error),
       onStateChange: (state) => {
         setPlayerState(state);
-        // Title and duration become available once the video has started loading.
+
         const nextTitle = instance.getTitle();
         if (nextTitle) setTitle(nextTitle);
         const nextDuration = instance.getDuration();
@@ -47,3 +43,4 @@ export function useYouTubePlayer(initialVideoId = undefined) {
 
   return { hostRef, controller, ready, playerState, playerError, clearError, loadFailed, title, duration };
 }
+

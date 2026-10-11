@@ -8,11 +8,6 @@ const HOSTS = new Set([
   'www.youtube-nocookie.com',
 ]);
 
-/**
- * Extract an 11-char video ID from a watch URL, youtu.be link, embed/shorts/live URL
- * or a bare ID. Returns null if unsupported. (Mirrors the server's validator, which is
- * the authority; this copy only gives instant form feedback.)
- */
 export function extractVideoId(input) {
   if (typeof input !== 'string') return null;
   const text = input.trim();
@@ -41,8 +36,8 @@ export function extractVideoId(input) {
 
 export const VIDEO_URL_HINT = 'Paste a youtube.com or youtu.be link.';
 
-/** Validate an optional/required video field. Returns an error string or ''. */
 export function validateVideoInput(value, { required = false } = {}) {
   if (!value.trim()) return required ? 'Paste a YouTube link.' : '';
   return extractVideoId(value) ? '' : 'That is not a supported YouTube link.';
 }
+

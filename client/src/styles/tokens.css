@@ -1,4 +1,4 @@
-/* WatchAlong design tokens: deep ink surfaces, warm ivory type, amber/coral accents. */
+
 :root {
   --ink-950: #080c18;
   --ink-900: #0b1020;
@@ -9,7 +9,7 @@
 
   --ivory: #f4ecdc;
   --ivory-dim: #cfc6b4;
-  --ivory-mute: #a39d90; /* 6.9:1 on --ink-900 */
+  --ivory-mute: #a39d90;
   --line: rgba(244, 236, 220, 0.11);
   --line-strong: rgba(244, 236, 220, 0.2);
 
@@ -38,3 +38,4 @@
 
   --topbar-h: 56px;
 }
+

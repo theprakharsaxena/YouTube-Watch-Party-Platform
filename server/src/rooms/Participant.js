@@ -1,9 +1,6 @@
 import { Roles } from '../auth/permissions.js';
 import { newParticipantId, newReconnectToken } from '../auth/sessionIdentity.js';
 
-/**
- * Encapsulates participant entity, credentials, and state.
- */
 export class Participant {
   constructor({
     id = newParticipantId(),
@@ -16,7 +13,7 @@ export class Participant {
     userId = null,
   }) {
     this.id = id;
-    this.userId = userId; // authenticated account that owns this seat (null when auth is disabled)
+    this.userId = userId;
     this.name = name;
     this.role = role;
     this.socketId = socketId;
@@ -39,7 +36,6 @@ export class Participant {
     this.updatedAt = Date.now();
   }
 
-  /** Public snapshot safe to broadcast to any peer in the room. Never leaks tokens or socket IDs. */
   toPublic() {
     return {
       id: this.id,
@@ -50,7 +46,6 @@ export class Participant {
     };
   }
 
-  /** Full object sent only to the seat owner upon join or restore. */
   toPrivate() {
     return {
       id: this.id,
@@ -62,16 +57,15 @@ export class Participant {
     };
   }
 
-  /** Serialized for persistent storage. */
   toJSON() {
     return {
       id: this.id,
       userId: this.userId,
       name: this.name,
       role: this.role,
-      socketId: null, // Sockets are ephemeral across restarts
+      socketId: null,
       token: this.token,
-      connected: false, // Start as disconnected on restore
+      connected: false,
       joinedAt: this.joinedAt,
       updatedAt: this.updatedAt,
     };
@@ -90,3 +84,4 @@ export class Participant {
     });
   }
 }
+

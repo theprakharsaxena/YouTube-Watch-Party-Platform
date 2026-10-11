@@ -1,6 +1,5 @@
 import { initials } from '../utils/formatters.js';
 
-// Deterministic warm tint per name so people are recognisable without photos.
 const TINTS = ['#f2a65a', '#ef7b6a', '#d9b88f', '#e4c07a', '#c98b7a', '#9fb4a1'];
 
 function tintFor(name) {
@@ -20,3 +19,4 @@ export default function Avatar({ name, size = 32, dimmed = false }) {
     </span>
   );
 }
+

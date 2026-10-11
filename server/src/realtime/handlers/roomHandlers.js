@@ -7,9 +7,6 @@ import {
   parseOptionalToken,
 } from '../../rooms/roomValidation.js';
 
-/**
- * Handles room lifecycle: creation, joining, rejoining, seat displacement, and departure.
- */
 export class RoomMessageHandler extends BaseMessageHandler {
   bind(room, participant) {
     this.sessions.set(this.socket.id, { roomId: room.id, participantId: participant.id });
@@ -23,7 +20,7 @@ export class RoomMessageHandler extends BaseMessageHandler {
     try {
       this.roomService.leaveRoom({ ...session, socketId: this.socket.id });
     } catch {
-      /* seat already gone */
+
     }
   }
 
@@ -51,7 +48,6 @@ export class RoomMessageHandler extends BaseMessageHandler {
       const roomId = normalizeRoomId(payload.roomId);
       const token = parseOptionalToken(payload.token);
 
-      // Repeated join for the seat this socket already holds: just resend state.
       const current = this.sessions.get(this.socket.id);
       if (current?.roomId === roomId) {
         const { room, participant } = this.roomService.requireMember({ ...current, socketId: this.socket.id });
@@ -74,7 +70,6 @@ export class RoomMessageHandler extends BaseMessageHandler {
         user: this.socket.data.user ?? null,
       });
 
-      // The same seat opened in another tab: the old socket is no longer authoritative.
       if (displacedSocketId) {
         const old = this.io.sockets.sockets.get(displacedSocketId);
         detachSocket(this.ctx, displacedSocketId);
@@ -128,3 +123,4 @@ export function registerRoomHandlers(ctx, socket, on) {
 }
 
 export { AppError };
+

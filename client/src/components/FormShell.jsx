@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import Brand from './Brand.jsx';
 
-/** Centered narrow layout used by the create / join / status screens. */
 export default function FormShell({ title, lead, children, footer }) {
   return (
     <div className="shell">
@@ -23,3 +22,4 @@ export default function FormShell({ title, lead, children, footer }) {
     </div>
   );
 }
+

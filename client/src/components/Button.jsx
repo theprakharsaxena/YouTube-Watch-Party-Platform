@@ -1,6 +1,5 @@
 import { Loader2 } from 'lucide-react';
 
-/** variant: primary | secondary | ghost | danger */
 export default function Button({
   variant = 'secondary',
   size = 'md',
@@ -25,3 +24,4 @@ export default function Button({
     </button>
   );
 }
+

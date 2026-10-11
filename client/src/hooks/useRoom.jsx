@@ -16,7 +16,7 @@ export function RoomProvider({ children }) {
   const [chatMessages, setChatMessages] = useState([]);
   const [reactions, setReactions] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const roomRef = useRef(room); // always-fresh mirror for socket callbacks (avoids stale closures)
+  const roomRef = useRef(room);
   const waiters = useRef(new Set());
 
   const update = useCallback((patch) => {
@@ -24,7 +24,6 @@ export function RoomProvider({ children }) {
     setRoom(roomRef.current);
   }, []);
 
-  // Request/response over events: resolve on a success event, reject on a matching room_error.
   const emitAndWait = useCallback(
     (event, payload, successEvents) =>
       new Promise((resolve, reject) => {
@@ -115,7 +114,7 @@ export function RoomProvider({ children }) {
         const item = {
           ...reaction,
           key: `${reaction.id || 'r'}-${Date.now()}-${Math.random()}`,
-          left: 15 + Math.random() * 70, // percentage horizontal placement
+          left: 15 + Math.random() * 70,
         };
         setReactions((prev) => [...prev.slice(-25), item]);
         setTimeout(() => {
@@ -126,10 +125,9 @@ export function RoomProvider({ children }) {
         applyState(state);
         setPendingRequests((prev) => [...prev.filter((r) => r.id !== request.id), request]);
         const currentMyId = myId();
-        // Do not notify the requester (they already saw the submission confirmation toast)
+
         if (by?.id === currentMyId) return;
 
-        // Only display to hosts and moderators who can act on the request
         const myRole = state.participants?.find((p) => p.id === currentMyId)?.role;
         if (myRole === 'host' || myRole === 'moderator') {
           toast.info(`${by.name} requested to change the video.`);
@@ -141,7 +139,6 @@ export function RoomProvider({ children }) {
         const resolver = resolvedBy || by;
         const currentMyId = myId();
 
-        // If I was the host/moderator who approved or declined the request, don't toast myself
         if (resolver?.id === currentMyId) return;
 
         if (approved) {
@@ -204,7 +201,7 @@ export function RoomProvider({ children }) {
           toast.error(error.message);
         }
       },
-      // After any reconnect, silently reclaim our seat with the server-issued token.
+
       connect: () => {
         const { phase, roomId, me } = roomRef.current;
         if (phase === 'joined' && roomId && me) {
@@ -218,8 +215,6 @@ export function RoomProvider({ children }) {
       for (const [event, handler] of Object.entries(handlers)) socket.off(event, handler);
     };
   }, [socket, toast, update]);
-
-  // ----- Actions -----
 
   const createRoom = useCallback(
     async ({ displayName, videoUrl }) => {
@@ -350,7 +345,7 @@ export function RoomProvider({ children }) {
       meParticipant,
       role,
       isHost: role === 'host',
-      canControl: role === 'host' || role === 'moderator', // UI hint only; the server enforces it
+      canControl: role === 'host' || role === 'moderator',
       host: participants.find((p) => p.id === room.state?.hostId) ?? null,
       chatMessages,
       reactions,
@@ -378,3 +373,4 @@ export function useRoom() {
   if (!context) throw new Error('useRoom must be used inside <RoomProvider>');
   return context;
 }
+

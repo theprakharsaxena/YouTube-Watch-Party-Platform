@@ -3,10 +3,6 @@ import { dirname, resolve } from 'node:path';
 import { RoomStore } from './roomManager.js';
 import { Room } from './Room.js';
 
-/**
- * File-backed persistent room store.
- * Allows room IDs and room playback states to persist across server restarts.
- */
 export class PersistentRoomStore extends RoomStore {
   #filePath;
   #dirty = false;
@@ -31,7 +27,7 @@ export class PersistentRoomStore extends RoomStore {
         }
       }
     } catch (err) {
-      // Gracefully ignore corrupt file or cold start
+
     }
   }
 
@@ -45,7 +41,7 @@ export class PersistentRoomStore extends RoomStore {
       writeFileSync(this.#filePath, JSON.stringify(data, null, 2), 'utf8');
       this.#dirty = false;
     } catch {
-      // Ignore write errors in read-only environments
+
     }
   }
 
@@ -73,3 +69,4 @@ export class PersistentRoomStore extends RoomStore {
     return deleted;
   }
 }
+

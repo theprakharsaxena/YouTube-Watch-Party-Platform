@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-// In-memory cache for extracted colors by `${videoId}:${frame}`
 const colorCache = new Map();
 
 function rgbToHsl(r, g, b) {
@@ -58,15 +57,12 @@ function hslToRgb(h, s, l) {
 
 export function enhanceColor(r, g, b) {
   const [h, s, l] = rgbToHsl(r, g, b);
-  // Gentle, dimmed saturation and luminance for soft ambient lighting
+
   const boostedS = s > 0.05 ? Math.min(0.75, s * 1.05) : s;
   const clampedL = Math.max(0.18, Math.min(0.44, l * 0.85));
   return hslToRgb(h, boostedS, clampedL);
 }
 
-/**
- * Samples 16x9 grid from image and extracts quadrant & center colors
- */
 export function extractColorsFromImage(img) {
   try {
     if (typeof document === 'undefined') return null;
@@ -135,16 +131,12 @@ function getInitialColors(videoId) {
   };
 }
 
-/**
- * Hook to dynamically load video frame and extract real video colors.
- */
 export default function useAmbientLighting({ videoId, position = 0, duration = 0, enabled = true }) {
   const [colors, setColors] = useState(() => getInitialColors(videoId));
   const [imageUrl, setImageUrl] = useState(() =>
     videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null
   );
 
-  // Determine frame snapshot (defaults to mqdefault, or uses storyboard snapshots as video progresses)
   let frame = 'mqdefault';
   if (duration > 15 && position > 0) {
     const fraction = position / duration;
@@ -182,7 +174,7 @@ export default function useAmbientLighting({ videoId, position = 0, duration = 0
       }
     };
     img.onerror = () => {
-      // If storyboard snapshot fails, fallback to mqdefault
+
       if (frame !== 'mqdefault') {
         const fallbackUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
         const fallbackImg = new Image();
@@ -215,3 +207,4 @@ export default function useAmbientLighting({ videoId, position = 0, duration = 0
 
   return { colors, imageUrl, style };
 }
+

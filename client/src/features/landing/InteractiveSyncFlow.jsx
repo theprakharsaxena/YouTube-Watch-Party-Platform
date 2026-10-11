@@ -103,9 +103,8 @@ export default function InteractiveSyncFlow() {
         </div>
       </div>
 
-      {/* Interactive Visual Network Diagram */}
       <div className="sync-flow__stage">
-        {/* Host Node */}
+
         <div className={`sync-node sync-node--host ${animating ? 'sync-node--emitting' : ''}`}>
           <div className="sync-node__icon">
             <Laptop size={22} />
@@ -114,7 +113,6 @@ export default function InteractiveSyncFlow() {
           <span className="sync-node__sub">Originates action</span>
         </div>
 
-        {/* Cable from Host to Server with animated packet */}
         <div className="sync-cable sync-cable--host-to-server">
           <div className="sync-cable__line" />
           {animating && (
@@ -124,7 +122,6 @@ export default function InteractiveSyncFlow() {
           )}
         </div>
 
-        {/* Central Server Node */}
         <div className={`sync-node sync-node--server ${animating ? 'sync-node--processing' : ''}`}>
           <div className="sync-node__icon">
             <Server size={26} />
@@ -140,7 +137,6 @@ export default function InteractiveSyncFlow() {
           </div>
         </div>
 
-        {/* Cables from Server to Viewers with animated broadcast packets */}
         <div className="sync-cable sync-cable--server-to-viewers">
           <div className="sync-cable__fork" />
           {animating && (
@@ -158,7 +154,6 @@ export default function InteractiveSyncFlow() {
           )}
         </div>
 
-        {/* Viewer Nodes */}
         <div className="sync-flow__viewers">
           <div className={`sync-node sync-node--viewer ${animating ? 'sync-node--updated' : ''}`}>
             <div className="sync-node__icon">
@@ -192,3 +187,4 @@ export default function InteractiveSyncFlow() {
     </div>
   );
 }
+

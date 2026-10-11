@@ -1,4 +1,4 @@
-// Small token bucket used per socket connection.
+
 export function createRateLimiter({ capacity, refillPerSecond }, now = () => Date.now()) {
   let tokens = capacity;
   let last = now();
@@ -11,3 +11,4 @@ export function createRateLimiter({ capacity, refillPerSecond }, now = () => Dat
     return true;
   };
 }
+

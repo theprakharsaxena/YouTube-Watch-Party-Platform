@@ -51,3 +51,4 @@ describe('formatters', () => {
     expect(parseRoomInput('0OIL0OIL0O')).toBeNull();
   });
 });
+

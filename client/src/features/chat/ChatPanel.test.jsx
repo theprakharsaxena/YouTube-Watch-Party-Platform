@@ -63,3 +63,4 @@ describe('ReactionPicker component', () => {
     expect(onSendReaction).not.toHaveBeenCalled();
   });
 });
+

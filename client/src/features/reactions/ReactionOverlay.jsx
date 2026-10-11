@@ -1,6 +1,4 @@
-/**
- * Floating synchronized emoji reaction particles drifting up over the video stage.
- */
+
 export default function ReactionOverlay({ reactions }) {
   if (!reactions || reactions.length === 0) return null;
 
@@ -18,3 +16,4 @@ export default function ReactionOverlay({ reactions }) {
     </div>
   );
 }
+

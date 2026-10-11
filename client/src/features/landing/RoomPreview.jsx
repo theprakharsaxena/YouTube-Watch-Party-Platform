@@ -2,8 +2,6 @@ import { Pause, Play, Lock } from 'lucide-react';
 import Avatar from '../../components/Avatar.jsx';
 import RoleBadge from '../../components/RoleBadge.jsx';
 
-// An illustration of the real room UI, built from the same components and styles.
-// Names are placeholders to show roles; nothing here is live data.
 const SAMPLE = [
   { name: 'Hana', role: 'host' },
   { name: 'Ines', role: 'moderator' },
@@ -52,3 +50,4 @@ export default function RoomPreview() {
     </figure>
   );
 }
+

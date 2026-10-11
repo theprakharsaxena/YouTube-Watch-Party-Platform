@@ -2,9 +2,6 @@ import { BaseMessageHandler } from './BaseMessageHandler.js';
 import { detachSocket } from '../socketServer.js';
 import { assertPayloadObject, parseId } from '../../rooms/roomValidation.js';
 
-/**
- * Handles role changes, promotions, and participant kick operations.
- */
 export class RoleMessageHandler extends BaseMessageHandler {
   register() {
     this.on('assign_role', (payload) => {
@@ -30,7 +27,6 @@ export class RoleMessageHandler extends BaseMessageHandler {
       const targetId = parseId(payload.targetId);
       const { room, actor, target } = this.roomService.removeParticipant(this.identity(), targetId);
 
-      // Tell the removed socket, then detach it so it cannot receive or send for this room.
       const targetSocketId = target.socketId;
       if (targetSocketId) {
         this.io.sockets.sockets.get(targetSocketId)?.emit('participant_removed', {
@@ -54,3 +50,4 @@ export class RoleMessageHandler extends BaseMessageHandler {
 export function registerRoleHandlers(ctx, socket, on) {
   new RoleMessageHandler(ctx, socket, on).register();
 }
+

@@ -42,3 +42,4 @@ describe('expectedPosition', () => {
     expect(expectedPosition({ status: 'playing', position: 5 }, 5_000, 1_000)).toBe(5);
   });
 });
+

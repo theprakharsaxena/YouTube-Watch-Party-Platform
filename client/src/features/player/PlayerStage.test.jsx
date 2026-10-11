@@ -30,19 +30,15 @@ describe('PlayerStage double-click & single-click handling', () => {
     const shield = container.querySelector('.stage__shield');
     expect(shield).toBeInTheDocument();
 
-    // Click 1
     fireEvent.click(shield);
     expect(onShieldClick).not.toHaveBeenCalled();
     expect(onDoubleClick).not.toHaveBeenCalled();
 
-    // Advance 150ms (quick second click)
     vi.advanceTimersByTime(150);
 
-    // Click 2
     fireEvent.click(shield);
     expect(onDoubleClick).toHaveBeenCalledOnce();
 
-    // Advance past single click delay to ensure single click does not fire
     vi.advanceTimersByTime(500);
     expect(onShieldClick).not.toHaveBeenCalled();
   });
@@ -65,17 +61,14 @@ describe('PlayerStage double-click & single-click handling', () => {
 
     const shield = container.querySelector('.stage__shield');
 
-    // Click 1 at t=0
     fireEvent.click(shield);
 
-    // Advance 350ms (past 320ms single-click threshold, so single click fires once)
     vi.advanceTimersByTime(350);
     expect(onShieldClick).toHaveBeenCalledTimes(1);
 
-    // Click 2 at t=400ms (within 600ms double click window)
     fireEvent.click(shield);
     expect(onDoubleClick).toHaveBeenCalledOnce();
-    // Reverts accidental play/pause toggle from single click
+
     expect(onShieldClick).toHaveBeenCalledTimes(2);
   });
 
@@ -97,15 +90,12 @@ describe('PlayerStage double-click & single-click handling', () => {
 
     const shield = container.querySelector('.stage__shield');
 
-    // Click 1
     fireEvent.click(shield);
     vi.advanceTimersByTime(350);
     expect(onShieldClick).toHaveBeenCalledTimes(1);
 
-    // Wait past 650ms
     vi.advanceTimersByTime(400);
 
-    // Click 2 after 750ms total
     fireEvent.click(shield);
     expect(onDoubleClick).not.toHaveBeenCalled();
     vi.advanceTimersByTime(350);
@@ -130,11 +120,9 @@ describe('PlayerStage double-click & single-click handling', () => {
 
     const shield = container.querySelector('.stage__shield');
 
-    // Click 1
     fireEvent.click(shield);
     vi.advanceTimersByTime(450);
 
-    // Click 2 with 450ms gap
     fireEvent.click(shield);
     expect(onDoubleClick).toHaveBeenCalledOnce();
     expect(onShieldClick).not.toHaveBeenCalled();
@@ -162,7 +150,6 @@ describe('PlayerStage double-click & single-click handling', () => {
     expect(container.querySelector('.stage__ambient-mesh')).toBeInTheDocument();
     expect(container.querySelector('.stage__ambient-video')).toBeInTheDocument();
 
-    // When paused, playing modifier is removed
     rerender(
       <PlayerStage
         hostRef={hostRef}
@@ -174,7 +161,6 @@ describe('PlayerStage double-click & single-click handling', () => {
     );
     expect(container.querySelector('.stage__ambient')).not.toHaveClass('stage__ambient--playing');
 
-    // When ambientMode is false, ambient element is not rendered
     rerender(
       <PlayerStage
         hostRef={hostRef}
@@ -186,7 +172,6 @@ describe('PlayerStage double-click & single-click handling', () => {
     );
     expect(container.querySelector('.stage__ambient')).toBeNull();
 
-    // When fullscreen, ambient element is not rendered
     rerender(
       <PlayerStage
         hostRef={hostRef}
@@ -200,3 +185,4 @@ describe('PlayerStage double-click & single-click handling', () => {
     expect(container.querySelector('.stage__ambient')).toBeNull();
   });
 });
+

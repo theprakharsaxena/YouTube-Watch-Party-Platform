@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-/**
- * Interactive ambient cinema constellation & particle canvas.
- * Responds to mouse movement with dynamic glowing connections,
- * gravitational pull, and click shockwave pulses.
- */
 export default function InteractiveCanvas() {
   const canvasRef = useRef(null);
 
@@ -19,7 +14,6 @@ export default function InteractiveCanvas() {
     let height = 0;
     let dpr = window.devicePixelRatio || 1;
 
-    // Track mouse with damping
     const mouse = {
       x: -1000,
       y: -1000,
@@ -28,10 +22,8 @@ export default function InteractiveCanvas() {
       isHovering: false,
     };
 
-    // Array of active shockwave ripples from clicks
     const ripples = [];
 
-    // Particle pool
     const PARTICLE_COUNT = 55;
     const particles = [];
 
@@ -45,7 +37,6 @@ export default function InteractiveCanvas() {
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Re-initialize particles within new bounds if empty
       if (particles.length === 0) {
         for (let i = 0; i < PARTICLE_COUNT; i++) {
           particles.push(createParticle());
@@ -54,12 +45,12 @@ export default function InteractiveCanvas() {
     }
 
     function createParticle() {
-      // Warm amber, coral, and soft gold hues matching WatchAlong palette
+
       const colors = [
-        'rgba(242, 166, 90, ', // amber
-        'rgba(239, 123, 106, ', // coral
-        'rgba(244, 236, 220, ', // ivory
-        'rgba(217, 184, 143, ', // warm champagne
+        'rgba(242, 166, 90, ',
+        'rgba(239, 123, 106, ',
+        'rgba(244, 236, 220, ',
+        'rgba(217, 184, 143, ',
       ];
       const baseColor = colors[Math.floor(Math.random() * colors.length)];
       return {
@@ -114,20 +105,17 @@ export default function InteractiveCanvas() {
 
     resize();
 
-    // Main animation loop
     let lastTime = performance.now();
 
     function render(currentTime) {
       const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
 
-      // Mouse smooth interpolation
       mouse.x += (mouse.targetX - mouse.x) * 0.12;
       mouse.y += (mouse.targetY - mouse.y) * 0.12;
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw active shockwaves
       for (let i = ripples.length - 1; i >= 0; i--) {
         const r = ripples[i];
         r.radius += dt * 320;
@@ -145,7 +133,6 @@ export default function InteractiveCanvas() {
         ctx.strokeStyle = `${r.color} ${r.alpha.toFixed(3)})`;
         ctx.stroke();
 
-        // Soft internal ambient glow
         const gradient = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, r.radius);
         gradient.addColorStop(0, 'rgba(242, 166, 90, 0)');
         gradient.addColorStop(0.85, 'rgba(242, 166, 90, 0)');
@@ -155,7 +142,6 @@ export default function InteractiveCanvas() {
         ctx.restore();
       }
 
-      // 2. Cursor Ambient Spotlight
       if (mouse.isHovering && mouse.x > -500) {
         const cursorGlow = ctx.createRadialGradient(
           mouse.x,
@@ -174,7 +160,6 @@ export default function InteractiveCanvas() {
         ctx.fill();
       }
 
-      // 3. Update & render particles
       const CONNECT_DIST = 110;
       const MOUSE_CONNECT_DIST = 160;
 
@@ -185,20 +170,18 @@ export default function InteractiveCanvas() {
         p.x += p.vx;
         p.y += p.vy;
 
-        // Wrap around boundaries
         if (p.x < -20) p.x = width + 20;
         if (p.x > width + 20) p.x = -20;
         if (p.y < -20) p.y = height + 20;
         if (p.y > height + 20) p.y = -20;
 
-        // Gravitational interaction with mouse
         if (mouse.isHovering && mouse.x > -500) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < MOUSE_CONNECT_DIST && dist > 1) {
-            // Draw connecting filament to mouse
+
             const alpha = (1 - dist / MOUSE_CONNECT_DIST) * 0.45;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -207,13 +190,11 @@ export default function InteractiveCanvas() {
             ctx.lineWidth = 1;
             ctx.stroke();
 
-            // Subtle gentle pull towards cursor
             p.x += (dx / dist) * 0.4;
             p.y += (dy / dist) * 0.4;
           }
         }
 
-        // Connections between neighbor particles
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const dx = p2.x - p.x;
@@ -231,7 +212,6 @@ export default function InteractiveCanvas() {
           }
         }
 
-        // Draw particle dot with gentle breathing pulse
         const pulse = Math.sin(p.phase) * 0.25;
         const currentAlpha = Math.max(0.1, Math.min(1, p.baseAlpha + pulse));
         const currentRadius = p.radius * (1 + pulse * 0.3);
@@ -264,3 +244,4 @@ export default function InteractiveCanvas() {
     />
   );
 }
+

@@ -1,10 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
-/**
- * Accessible modal dialog with focus restoration, Escape key dismissal,
- * and backdrop-click handling that integrates seamlessly beneath high-priority toasts.
- */
 export default function Dialog({ open, onClose, title, description, children, footer, labelledBy = 'dialog-title' }) {
   const previousFocus = useRef(null);
 
@@ -20,7 +16,6 @@ export default function Dialog({ open, onClose, title, description, children, fo
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Lock body scroll while dialog is open
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -39,7 +34,7 @@ export default function Dialog({ open, onClose, title, description, children, fo
     <div
       className="dialog-overlay"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose(); // click on the backdrop
+        if (event.target === event.currentTarget) onClose();
       }}
     >
       <div
@@ -64,3 +59,4 @@ export default function Dialog({ open, onClose, title, description, children, fo
     </div>
   );
 }
+

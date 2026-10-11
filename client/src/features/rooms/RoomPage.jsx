@@ -41,10 +41,6 @@ const ENDED_COPY = {
   closed: { icon: DoorClosed, title: 'This room has ended', text: 'The room no longer exists. Rooms are removed when everyone leaves or the server restarts.' },
 };
 
-/**
- * Route gate for /r/:roomId.
- * joined -> watch room | ended -> explanation | has saved seat -> silent rejoin | otherwise name prompt.
- */
 export default function RoomPage() {
   const { roomId: rawId } = useParams();
   const code = parseRoomInput(rawId);
@@ -80,7 +76,6 @@ export default function RoomPage() {
     return () => controller.abort();
   }, [code, isInRoom, phase]);
 
-  // Returning visitor (refresh / reconnect): reclaim the saved seat without asking again.
   useEffect(() => {
     if (lookup.status !== 'ok' || isInRoom || phase !== 'idle') return;
     if (!loadSession(code)?.token || autoJoinTried.current === code) return;
@@ -226,7 +221,7 @@ export default function RoomPage() {
           </form>
         ) : (
           <div className="form-stack">
-            {/* Option 1: Login before joining as participant */}
+
             <div
               style={{
                 padding: '16px',
@@ -270,7 +265,6 @@ export default function RoomPage() {
               <span style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
             </div>
 
-            {/* Option 2: Viewer join without login */}
             <form onSubmit={handleJoinAsViewer} noValidate className="form-stack">
               <div style={{ display: 'grid', gap: '6px' }}>
                 <Field
@@ -295,3 +289,4 @@ export default function RoomPage() {
     </>
   );
 }
+

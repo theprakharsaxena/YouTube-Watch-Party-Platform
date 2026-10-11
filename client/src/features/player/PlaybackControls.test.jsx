@@ -52,7 +52,6 @@ describe('PlaybackControls', () => {
     const slider = screen.getByRole('slider', { name: /seek/i });
     expect(slider).toHaveValue('60');
 
-    // Simulate drag down to 0
     userEvent.pointer([{ target: slider, keys: '[MouseLeft>]' }]);
     slider.value = '0';
     slider.dispatchEvent(new Event('input', { bubbles: true }));
@@ -60,10 +59,9 @@ describe('PlaybackControls', () => {
     slider.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
 
     expect(onSeek).toHaveBeenCalledWith(0);
-    // Value remains 0 optimistically even if parent position is still 60
+
     expect(slider).toHaveValue('0');
 
-    // Now parent updates position close to 0 -> clears pending optimistic hold
     rerender(<PlaybackControls {...props} canControl onSeek={onSeek} position={0.2} />);
     expect(slider).toHaveValue('0.2');
   });
@@ -92,3 +90,4 @@ describe('PlaybackControls', () => {
     expect(screen.getByRole('button', { name: /unmute on this device/i })).toBeInTheDocument();
   });
 });
+

@@ -9,27 +9,17 @@ import { setupRedisAdapter } from './redisAdapter.js';
 
 export const roomChannel = (roomId) => `room:${roomId}`;
 
-/**
- * Wires Socket.IO to the RoomService.
- *
- * `sessions` maps socket.id -> { roomId, participantId }. It is the server-side
- * association used to identify who is acting: handlers NEVER read a participant
- * id or role from the event payload to decide who the caller is.
- */
 export function createSocketServer(httpServer, { roomService, config, authService = null }) {
   const io = new Server(httpServer, {
     cors: { origin: config.clientOrigins, methods: ['GET', 'POST'] },
-    maxHttpBufferSize: 1e5, // 100 KB is plenty for our tiny payloads
+    maxHttpBufferSize: 1e5,
   });
   const sessions = new Map();
 
   const context = { io, roomService, sessions, config };
 
-  // Attach Redis adapter if REDIS_URL is configured for multi-server cluster
   setupRedisAdapter(io, { redisUrl: config.redisUrl || process.env.REDIS_URL });
 
-  // Handshake auth: the token proves who is connecting. The verified user is stored on
-  // socket.data and is the only source of identity for create/join (names, host rights, bans).
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     const user = authService?.verifyToken(typeof token === 'string' ? token : null) ?? null;
@@ -48,10 +38,6 @@ export function createSocketServer(httpServer, { roomService, config, authServic
   io.on('connection', (socket) => {
     const allow = createRateLimiter(config.rateLimit);
 
-    /**
-     * Wrap a handler: rate limit, payload sanity, and uniform error reporting.
-     * Handlers throw AppError; anything else is logged and masked.
-     */
     const on = (event, handler) => {
       socket.on(event, (payload) => {
         try {
@@ -70,7 +56,6 @@ export function createSocketServer(httpServer, { roomService, config, authServic
     registerChatHandlers(context, socket, on);
   });
 
-  // Timer-driven changes originate in the service rather than a socket event.
   roomService.on('participant_status', ({ roomId }) => {
     const room = roomService.store.get(roomId);
     if (room) io.to(roomChannel(roomId)).emit('room_state', { state: roomService.snapshot(room) });
@@ -79,7 +64,7 @@ export function createSocketServer(httpServer, { roomService, config, authServic
   roomService.on('participant_left', ({ roomId, participant, reason, newHostId }) => {
     const room = roomService.store.get(roomId);
     if (!room) return;
-    // A voluntary leave already detached the socket; a timeout has no socket.
+
     io.to(roomChannel(roomId)).emit('participant_left', {
       state: roomService.snapshot(room),
       participantId: participant.id,
@@ -92,7 +77,6 @@ export function createSocketServer(httpServer, { roomService, config, authServic
   return io;
 }
 
-/** Remove a socket's room binding (both Socket.IO room and our session map). */
 export function detachSocket({ io, sessions }, socketId) {
   const session = sessions.get(socketId);
   sessions.delete(socketId);
@@ -101,9 +85,9 @@ export function detachSocket({ io, sessions }, socketId) {
   return session;
 }
 
-/** Resolve the caller's identity strictly from server-side state. */
 export function identityFor({ sessions }, socket) {
   const session = sessions.get(socket.id);
   if (!session) throw new AppError(ErrorCodes.NOT_IN_ROOM, 'Join a room first.');
   return { ...session, socketId: socket.id };
 }
+
