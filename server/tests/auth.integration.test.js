@@ -9,6 +9,7 @@ import { AuthService } from '../src/auth/authService.js';
 import { RoomStore } from '../src/rooms/roomManager.js';
 
 // Auth is ON (default): identity comes from the verified session, never the payload.
+
 describe('socket authentication', () => {
   let server;
   let url;
